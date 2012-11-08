@@ -40,7 +40,6 @@
 @implementation CollapsableTableView
 @synthesize delegate;
 @synthesize dataSource;
-@synthesize sections;
 
 - (id)initWithFrame:(CGRect)frame
 {
@@ -51,15 +50,25 @@
     return self;
 }
 
+#if ! __has_feature(objc_arc)
+- (void) dealloc {
+	[_sections release];
+	[_insertSections release];
+	[_deleteSections release];
+	[_moveSections release];
+	[super dealloc];
+}
+#endif
+
 - (void) awakeFromNib {
 	[super setDelegate:(id)self];
 	[super setDataSource:(id)self];
-	SectionHeaderTapGestureRecognizer* recognizer = [[SectionHeaderTapGestureRecognizer alloc] initWithTarget:self action:@selector(onTap:)];
+/*	SectionHeaderTapGestureRecognizer* recognizer = [[SectionHeaderTapGestureRecognizer alloc] initWithTarget:self action:@selector(onTap:)];
 	recognizer.delegate = recognizer;
 	recognizer.tableView = self;
 	for (UIGestureRecognizer* r in self.gestureRecognizers)
 		[recognizer requireGestureRecognizerToFail:r];
-	[self addGestureRecognizer:recognizer];
+	[self addGestureRecognizer:recognizer];*/
 }
 
 - (void) reloadData {
@@ -157,14 +166,13 @@
 }
 
 - (NSMutableArray*) sections {
-	if (!sections) {
-		sections = [[NSMutableArray alloc] init];
+	if (!_sections) {
 		NSInteger numberOfSections = [self numberOfSections];
 		self.sections = [NSMutableArray arrayWithCapacity:numberOfSections];
 		for (NSInteger section = 0; section < numberOfSections; section++)
 			[self.sections addObject:[NSNull null]];
 	}
-	return sections;
+	return _sections;
 }
 
 #pragma mark - UITableViewDataSource
@@ -184,10 +192,47 @@
 		return [dataSource tableView:tableView numberOfRowsInSection:section];
 }
 
+- (UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {
+	if ([delegate respondsToSelector:@selector(tableView:viewForHeaderInSection:)]) {
+		UIView* view = [delegate tableView:self viewForHeaderInSection:section];
+		UIGestureRecognizer* recognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(onTap:)];
+		[view addGestureRecognizer:recognizer];
+#if ! __has_feature(objc_arc)
+		[recognizer release];
+#endif
+		objc_setAssociatedObject(view, @"section", @(section), OBJC_ASSOCIATION_RETAIN);
+		return view;
+	}
+	else
+		return nil;
+}
+
 #pragma mark - Private
 
 - (void) onTap:(UITapGestureRecognizer *)recognizer {
-	CGPoint p = [recognizer locationInView:self];
+	NSNumber* section = objc_getAssociatedObject(recognizer.view, @"section");
+	if (section) {
+		NSInteger sectionIndex = [section integerValue];
+		NSNumber* collapsed = [self.sections objectAtIndex:sectionIndex];
+		if ((NSNull*) collapsed == [NSNull null]) {
+			if ([self.delegate respondsToSelector:@selector(tableView:sectionIsCollapsed:)])
+				collapsed = @([delegate tableView:self sectionIsCollapsed:sectionIndex]);
+			else
+				collapsed =  @(NO);
+			[self.sections replaceObjectAtIndex:sectionIndex withObject:collapsed];
+		}
+		if ([delegate respondsToSelector:@selector(tableView:canCollapsSection:)] && [delegate tableView:self canCollapsSection:sectionIndex]) {
+			[self.sections replaceObjectAtIndex:sectionIndex withObject:@(![collapsed boolValue])];
+			if ([collapsed boolValue] && [delegate respondsToSelector:@selector(tableView:didExpandSection:)])
+				[delegate tableView:self didExpandSection:sectionIndex];
+			else if (![collapsed boolValue] && [delegate respondsToSelector:@selector(tableView:didCollapsSection:)])
+				[delegate tableView:self didCollapsSection:sectionIndex];
+			
+			[self reloadSections:[NSIndexSet indexSetWithIndex:sectionIndex] withRowAnimation:UITableViewRowAnimationFade];
+		}
+	}
+	
+/*	CGPoint p = [recognizer locationInView:self];
 	NSInteger numberOfSections = [self numberOfSections];
 	for (NSInteger section = 0; section < numberOfSections; section++) {
 		if (CGRectContainsPoint([self rectForHeaderInSection:section], p)) {
@@ -210,7 +255,7 @@
 				return;
 			}
 		}
-	}
+	}*/
 }
 
 @end
