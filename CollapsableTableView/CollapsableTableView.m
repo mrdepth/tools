@@ -195,6 +195,8 @@
 - (UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {
 	if ([delegate respondsToSelector:@selector(tableView:viewForHeaderInSection:)]) {
 		UIView* view = [delegate tableView:self viewForHeaderInSection:section];
+		if (!view)
+			return nil;
 		UIGestureRecognizer* recognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(onTap:)];
 		[view addGestureRecognizer:recognizer];
 #if ! __has_feature(objc_arc)
