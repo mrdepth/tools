@@ -10,6 +10,4 @@
 
 @interface UIImage (Retina4)
 
-+ (UIImage*) retina4ImageNamed:(NSString*) imageName;
-
 @end

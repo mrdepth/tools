@@ -12,8 +12,12 @@
 
 + (NSString*) uuidString {
 	CFUUIDRef uuid = CFUUIDCreate(NULL);
-	NSString* string = (NSString*) CFUUIDCreateString(NULL, uuid);
+	NSString* string = (__bridge_transfer NSString*) CFUUIDCreateString(NULL, uuid);
 	CFRelease(uuid);
+#if ! __has_feature(objc_arc)
 	return [string autorelease];
+#else
+	return string;
+#endif
 }
 @end
