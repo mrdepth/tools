@@ -22,4 +22,6 @@
 @property (nonatomic, assign) id<CollapsableTableViewDelegate> delegate;
 @property (nonatomic, assign) id<UITableViewDataSource> dataSource;
 
+- (void) handleShake;
+
 @end

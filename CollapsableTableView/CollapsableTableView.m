@@ -175,6 +175,42 @@
 	return _sections;
 }
 
+- (void) handleShake {
+	NSInteger n = self.sections.count;
+	BOOL allCollapsed = YES;
+	for (NSInteger sectionIndex = 0; sectionIndex < n; sectionIndex++) {
+		BOOL collapsed;
+		if ([self.sections objectAtIndex:sectionIndex] == [NSNull null]) {
+			if ([self.delegate respondsToSelector:@selector(tableView:sectionIsCollapsed:)])
+				collapsed = [delegate tableView:self sectionIsCollapsed:sectionIndex];
+			else
+				collapsed =  NO;
+			[self.sections replaceObjectAtIndex:sectionIndex withObject:@(collapsed)];
+		}
+		else
+			collapsed = [[self.sections objectAtIndex:sectionIndex] boolValue];
+		
+		if ([delegate respondsToSelector:@selector(tableView:canCollapsSection:)] && [delegate tableView:self canCollapsSection:sectionIndex]) {
+			if (!collapsed) {
+				allCollapsed = NO;
+				break;
+			}
+		}
+	}
+	
+	for (NSInteger sectionIndex = 0; sectionIndex < n; sectionIndex++) {
+		if ([delegate respondsToSelector:@selector(tableView:canCollapsSection:)] && [delegate tableView:self canCollapsSection:sectionIndex]) {
+			[self.sections replaceObjectAtIndex:sectionIndex withObject:@(!allCollapsed)];
+			if (allCollapsed && [delegate respondsToSelector:@selector(tableView:didExpandSection:)])
+				[delegate tableView:self didExpandSection:sectionIndex];
+			else if (!allCollapsed && [delegate respondsToSelector:@selector(tableView:didCollapsSection:)])
+				[delegate tableView:self didCollapsSection:sectionIndex];
+			
+			[self reloadSections:[NSIndexSet indexSetWithIndex:sectionIndex] withRowAnimation:UITableViewRowAnimationFade];
+		}
+	}
+}
+
 #pragma mark - UITableViewDataSource
 
 - (NSInteger) tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
