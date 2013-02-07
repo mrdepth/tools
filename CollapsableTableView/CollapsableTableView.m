@@ -176,6 +176,9 @@
 }
 
 - (void) handleShake {
+	if (![delegate respondsToSelector:@selector(tableView:canCollapsSection:)])
+		return;
+	
 	NSInteger n = self.sections.count;
 	BOOL allCollapsed = YES;
 	for (NSInteger sectionIndex = 0; sectionIndex < n; sectionIndex++) {
@@ -190,7 +193,7 @@
 		else
 			collapsed = [[self.sections objectAtIndex:sectionIndex] boolValue];
 		
-		if ([delegate respondsToSelector:@selector(tableView:canCollapsSection:)] && [delegate tableView:self canCollapsSection:sectionIndex]) {
+		if ([delegate tableView:self canCollapsSection:sectionIndex]) {
 			if (!collapsed) {
 				allCollapsed = NO;
 				break;
@@ -198,17 +201,22 @@
 		}
 	}
 	
-	for (NSInteger sectionIndex = 0; sectionIndex < n; sectionIndex++) {
-		if ([delegate respondsToSelector:@selector(tableView:canCollapsSection:)] && [delegate tableView:self canCollapsSection:sectionIndex]) {
-			[self.sections replaceObjectAtIndex:sectionIndex withObject:@(!allCollapsed)];
-			if (allCollapsed && [delegate respondsToSelector:@selector(tableView:didExpandSection:)])
-				[delegate tableView:self didExpandSection:sectionIndex];
-			else if (!allCollapsed && [delegate respondsToSelector:@selector(tableView:didCollapsSection:)])
-				[delegate tableView:self didCollapsSection:sectionIndex];
-			
-			[self reloadSections:[NSIndexSet indexSetWithIndex:sectionIndex] withRowAnimation:UITableViewRowAnimationFade];
+	NSMutableIndexSet* indexSet = [NSMutableIndexSet indexSet];
+	if ([delegate respondsToSelector:@selector(tableView:canCollapsSection:)]) {
+		for (NSInteger sectionIndex = 0; sectionIndex < n; sectionIndex++) {
+			if ([delegate tableView:self canCollapsSection:sectionIndex]) {
+				[self.sections replaceObjectAtIndex:sectionIndex withObject:@(!allCollapsed)];
+				if (allCollapsed && [delegate respondsToSelector:@selector(tableView:didExpandSection:)])
+					[delegate tableView:self didExpandSection:sectionIndex];
+				else if (!allCollapsed && [delegate respondsToSelector:@selector(tableView:didCollapsSection:)])
+					[delegate tableView:self didCollapsSection:sectionIndex];
+				
+				[indexSet addIndex:sectionIndex];
+			}
 		}
 	}
+	if (indexSet.count > 0)
+		[self reloadSections:indexSet withRowAnimation:UITableViewRowAnimationFade];
 }
 
 #pragma mark - UITableViewDataSource
