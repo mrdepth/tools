@@ -11,7 +11,7 @@
 
 @implementation NSBundle (Retina4)
 
-+ (void) initialize {
++ (void) load {
 	if ([[UIScreen mainScreen] bounds].size.height == 568 && [[UIScreen mainScreen] scale] == 2.0) {
 		Method m1 = class_getInstanceMethod(self, @selector(pathForResource:ofType:));
 		Method m2 = class_getInstanceMethod(self, @selector(retina4PathForResource:ofType:));
