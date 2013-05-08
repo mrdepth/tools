@@ -106,8 +106,8 @@
 			break;
 	}
 	
-	CGSize size;
-	CGRect rect;
+	CGSize size = CGSizeZero;
+	CGRect rect = CGRectZero;
 	
 	if (scalingMode == ScalingModeFill) {
 		size = newSize;
