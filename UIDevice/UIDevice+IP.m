@@ -16,7 +16,7 @@
 @implementation UIDevice(IP)
 
 + (NSString*) localIPAddress {
-	char buf[128];
+/*	char buf[128];
 	bzero(buf, 128);
 	gethostname(buf, 128);
 	struct hostent *h = NULL;
@@ -25,7 +25,8 @@
 		return nil;
 	struct in_addr *addr = (struct in_addr*) *(h->h_addr_list);
 	char *s = inet_ntoa(*addr);
-	return [NSString stringWithCString:s encoding:NSASCIIStringEncoding];
+	return [NSString stringWithCString:s encoding:NSASCIIStringEncoding];*/
+	return [[self localIPAddresses] objectAtIndex:0];
 }
 
 + (NSArray*) localIPAddresses {
