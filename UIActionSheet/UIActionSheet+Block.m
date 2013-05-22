@@ -67,6 +67,50 @@ destructiveButtonTitle:(NSString *)destructiveButtonTitle
 	return self;
 }
 
++ (id)actionSheetWithStyle:(UIActionSheetStyle) style
+					 title:(NSString *)title
+		 cancelButtonTitle:(NSString *)cancelButtonTitle
+	destructiveButtonTitle:(NSString *)destructiveButtonTitle
+		 otherButtonTitles:(NSArray *)otherButtonTitles
+		   completionBlock:(void (^)(UIActionSheet* actionSheet, NSInteger selectedButtonIndex)) completionBlock
+			   cancelBlock:(void (^)()) cancelBlock {
+#if ! __has_feature(objc_arc)
+	return [[[UIActionSheet alloc] initWithStyle:style
+										   title:title
+							   cancelButtonTitle:cancelButtonTitle
+						  destructiveButtonTitle:destructiveButtonTitle
+							   otherButtonTitles:otherButtonTitles
+								 completionBlock:completionBlock
+									 cancelBlock:cancelBlock] autorelease];
+#else
+	return [[UIActionSheet alloc] initWithStyle:style
+										  title:title
+							  cancelButtonTitle:cancelButtonTitle
+						 destructiveButtonTitle:destructiveButtonTitle
+							  otherButtonTitles:otherButtonTitles
+								completionBlock:completionBlock
+									cancelBlock:cancelBlock];
+#endif
+}
+
+- (id)   initWithStyle:(UIActionSheetStyle) style
+				 title:(NSString *)title
+	 cancelButtonTitle:(NSString *)cancelButtonTitle
+destructiveButtonTitle:(NSString *)destructiveButtonTitle
+	 otherButtonTitles:(NSArray *)otherButtonTitles
+	   completionBlock:(void (^)(UIActionSheet* actionSheet, NSInteger selectedButtonIndex)) completionBlock
+		   cancelBlock:(void (^)()) cancelBlock {
+	if (self = [self initWithTitle:title
+				 cancelButtonTitle:cancelButtonTitle
+			destructiveButtonTitle:destructiveButtonTitle
+				 otherButtonTitles:otherButtonTitles
+				   completionBlock:completionBlock
+					   cancelBlock:cancelBlock]) {
+		self.actionSheetStyle = style;
+	}
+	return self;
+}
+
 #pragma mark - UIActionSheetDelegate
 
 - (void)actionSheet:(UIActionSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex {

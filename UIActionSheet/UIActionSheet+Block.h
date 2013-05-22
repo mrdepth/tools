@@ -23,5 +23,21 @@ destructiveButtonTitle:(NSString *)destructiveButtonTitle
 	   completionBlock:(void (^)(UIActionSheet* actionSheet, NSInteger selectedButtonIndex)) completionBlock
 		   cancelBlock:(void (^)()) cancelBlock;
 
++ (id)actionSheetWithStyle:(UIActionSheetStyle) style
+					 title:(NSString *)title
+		 cancelButtonTitle:(NSString *)cancelButtonTitle
+	destructiveButtonTitle:(NSString *)destructiveButtonTitle
+		 otherButtonTitles:(NSArray *)otherButtonTitles
+		   completionBlock:(void (^)(UIActionSheet* actionSheet, NSInteger selectedButtonIndex)) completionBlock
+			   cancelBlock:(void (^)()) cancelBlock;
+
+- (id)   initWithStyle:(UIActionSheetStyle) style
+				 title:(NSString *)title
+	 cancelButtonTitle:(NSString *)cancelButtonTitle
+destructiveButtonTitle:(NSString *)destructiveButtonTitle
+	 otherButtonTitles:(NSArray *)otherButtonTitles
+	   completionBlock:(void (^)(UIActionSheet* actionSheet, NSInteger selectedButtonIndex)) completionBlock
+		   cancelBlock:(void (^)()) cancelBlock;
+
 
 @end
