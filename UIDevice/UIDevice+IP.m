@@ -26,7 +26,8 @@
 	struct in_addr *addr = (struct in_addr*) *(h->h_addr_list);
 	char *s = inet_ntoa(*addr);
 	return [NSString stringWithCString:s encoding:NSASCIIStringEncoding];*/
-	return [[self localIPAddresses] objectAtIndex:0];
+	NSArray* addresses = [self localIPAddresses];
+	return addresses.count > 0 ? [addresses objectAtIndex:0] : nil;
 }
 
 + (NSArray*) localIPAddresses {
