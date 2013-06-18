@@ -81,9 +81,11 @@
 }
 
 - (void) start {
-	[self.delegate operationDidStart:self];
-	[super start];
-	[self.delegate operationDidFinish:self];
+	@autoreleasepool {
+		[self.delegate operationDidStart:self];
+		[super start];
+		[self.delegate operationDidFinish:self];
+	}
 }
 
 @end
