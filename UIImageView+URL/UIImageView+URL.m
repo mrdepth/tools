@@ -64,8 +64,11 @@ static NSOperationQueue* sharedQueue = nil;
 			while (self.loading)
 				[[NSRunLoop currentRunLoop] runUntilDate:[NSDate distantFuture]];
 			
-			if (!self.error && ![self isCancelled])
+			if (!self.error && ![self isCancelled]) {
 				self.image = [UIImage imageWithData:self.data];
+				cachedResponse = [[NSCachedURLResponse alloc] initWithResponse:response data:self.data userInfo:nil storagePolicy:NSURLCacheStorageAllowed];
+				[cache storeCachedResponse:cachedResponse forRequest:request];
+			}
 		}
 		else
 			self.image = [UIImage imageWithData:self.data];
