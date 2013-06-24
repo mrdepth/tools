@@ -64,7 +64,7 @@
 #pragma mark - Private
 
 - (void) setCompletionBlock:(void (^)(UIAlertView*, NSInteger))completionBlock {
-	objc_setAssociatedObject(self, @"completionBlock", completionBlock, OBJC_ASSOCIATION_COPY);
+	objc_setAssociatedObject(self, @"completionBlock", [completionBlock copy], OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 }
 
 - (void(^)(UIAlertView*, NSInteger)) completionBlock {
@@ -72,7 +72,7 @@
 }
 
 - (void) setCancelBlock:(void (^)())cancelBlock {
-	objc_setAssociatedObject(self, @"cancelBlock", cancelBlock, OBJC_ASSOCIATION_COPY);
+	objc_setAssociatedObject(self, @"cancelBlock", [cancelBlock copy], OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 }
 
 - (void(^)()) cancelBlock {

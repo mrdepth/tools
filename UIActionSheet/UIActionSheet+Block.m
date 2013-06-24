@@ -132,7 +132,7 @@ destructiveButtonTitle:(NSString *)destructiveButtonTitle
 #pragma mark - Private
 
 - (void) setCompletionBlock:(void (^)(UIActionSheet*, NSInteger))completionBlock {
-	objc_setAssociatedObject(self, @"completionBlock", completionBlock, OBJC_ASSOCIATION_COPY);
+	objc_setAssociatedObject(self, @"completionBlock", [completionBlock copy], OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 }
 
 - (void(^)(UIActionSheet*, NSInteger)) completionBlock {
@@ -140,7 +140,7 @@ destructiveButtonTitle:(NSString *)destructiveButtonTitle
 }
 
 - (void) setCancelBlock:(void (^)())cancelBlock {
-	objc_setAssociatedObject(self, @"cancelBlock", cancelBlock, OBJC_ASSOCIATION_COPY);
+	objc_setAssociatedObject(self, @"cancelBlock", [cancelBlock copy], OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 }
 
 - (void(^)()) cancelBlock {
