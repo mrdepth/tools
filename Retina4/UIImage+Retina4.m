@@ -32,11 +32,9 @@
 	NSString* resourceName = [aDecoder decodeObjectForKey:@"UIResourceName"];
 	NSString* extension = [resourceName pathExtension];
 	NSString* name = [resourceName stringByDeletingPathExtension];
-	if ([name hasPrefix:@"@2x"])
-		name = [name substringToIndex:name.length - 3];
-	NSString* newResourceName = [name stringByAppendingString:@"~568h"];
+	NSString* newResourceName = [name hasPrefix:@"@2x"] ? [name stringByAppendingString:@"~568h"] : [name stringByAppendingString:@"@2x~568h"];
 	
-	NSString* fullPath = [[NSBundle mainBundle] retina4PathForResource:[newResourceName stringByAppendingString:@"@2x"] ofType:extension];
+	NSString* fullPath = [[NSBundle mainBundle] retina4PathForResource:newResourceName ofType:extension];
 	if (fullPath)
 		return [UIImage retina4ImageNamed:[newResourceName stringByAppendingPathExtension:extension]];
 	else
@@ -48,9 +46,9 @@
 	NSString* name = [imageName stringByDeletingPathExtension];
 	if ([name hasPrefix:@"@2x"])
 		name = [name substringToIndex:name.length - 3];
-	NSString* newResourceName = [name stringByAppendingString:@"~568h"];
+	NSString* newResourceName = [name hasPrefix:@"@2x"] ? [name stringByAppendingString:@"~568h"] : [name stringByAppendingString:@"@2x~568h"];
 	
-	NSString* fullPath = [[NSBundle mainBundle] retina4PathForResource:[newResourceName stringByAppendingString:@"@2x"] ofType:extension];
+	NSString* fullPath = [[NSBundle mainBundle] retina4PathForResource:newResourceName ofType:extension];
 	if (fullPath)
 		return [self retina4ImageNamed:[newResourceName stringByAppendingPathExtension:extension]];
 	else
