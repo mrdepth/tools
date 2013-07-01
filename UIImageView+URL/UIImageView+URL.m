@@ -12,35 +12,28 @@
 static NSOperationQueue* sharedQueue = nil;
 
 @interface URLOperation: NSOperation<NSURLConnectionDelegate, NSURLConnectionDataDelegate>
-@property (nonatomic, retain) NSURL* url;
-@property (nonatomic, retain) NSURLConnection* connection;
-@property (nonatomic, retain) NSHTTPURLResponse* response;
-@property (nonatomic, retain) NSData* data;
-@property (nonatomic, retain) NSError* error;
+@property (nonatomic, strong) NSURL* url;
+@property (nonatomic, strong) NSURLConnection* connection;
+@property (nonatomic, strong) NSHTTPURLResponse* response;
+@property (nonatomic, strong) NSData* data;
+@property (nonatomic, strong) NSError* error;
 @property (nonatomic, assign) BOOL loading;
-@property (nonatomic, retain) UIImage* image;
-@property (nonatomic, assign) UIImageView* imageView;
+@property (nonatomic, strong) UIImage* image;
+@property (nonatomic, weak) UIImageView* imageView;
 
 @end
 
 @implementation URLOperation
-@synthesize url;
-@synthesize connection;
-@synthesize response;
-@synthesize data;
-@synthesize error;
-@synthesize loading;
-@synthesize image;
-@synthesize imageView;
+
 
 #if ! __has_feature(objc_arc)
 - (void) dealloc {
-	[url release];
-	[connection release];
-	[response release];
-	[data release];
-	[error release];
-	[image release];
+	[_url release];
+	[_connection release];
+	[_response release];
+	[_data release];
+	[_error release];
+	[_image release];
 	[super dealloc];
 }
 #endif
@@ -49,7 +42,7 @@ static NSOperationQueue* sharedQueue = nil;
 	@autoreleasepool {
 		NSURLCache* cache = [NSURLCache sharedURLCache];
 
-		NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:url];
+		NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:self.url];
 		NSCachedURLResponse* cachedResponse = [cache cachedResponseForRequest:request];
 		self.data = [cachedResponse data];
 
@@ -66,7 +59,7 @@ static NSOperationQueue* sharedQueue = nil;
 			
 			if (!self.error && ![self isCancelled]) {
 				self.image = [UIImage imageWithData:self.data];
-				cachedResponse = [[NSCachedURLResponse alloc] initWithResponse:response data:self.data userInfo:nil storagePolicy:NSURLCacheStorageAllowed];
+				cachedResponse = [[NSCachedURLResponse alloc] initWithResponse:self.response data:self.data userInfo:nil storagePolicy:NSURLCacheStorageAllowed];
 				[cache storeCachedResponse:cachedResponse forRequest:request];
 			}
 		}

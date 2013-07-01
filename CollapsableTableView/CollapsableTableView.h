@@ -19,8 +19,8 @@
 
 
 @interface CollapsableTableView : UITableView
-@property (nonatomic, assign) id<CollapsableTableViewDelegate> delegate;
-@property (nonatomic, assign) id<UITableViewDataSource> dataSource;
+@property (nonatomic, weak) id<CollapsableTableViewDelegate> delegate;
+@property (nonatomic, weak) id<UITableViewDataSource> dataSource;
 
 - (void) handleShake;
 

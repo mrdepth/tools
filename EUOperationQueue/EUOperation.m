@@ -9,14 +9,10 @@
 #import "EUOperation.h"
 
 @interface EUOperation()
-@property (nonatomic, readwrite, retain) NSString* identifier;
+@property (nonatomic, readwrite, strong) NSString* identifier;
 @end
 
 @implementation EUOperation
-@synthesize identifier;
-@synthesize progress;
-@synthesize operationName;
-@synthesize delegate;
 
 + (id) operationWithIdentifier:(NSString*) aIdentifier name:(NSString*) name {
 #if ! __has_feature(objc_arc)
@@ -76,8 +72,8 @@
 }
 
 - (void) setProgress:(float)value {
-	progress = value;
-	[self.delegate operation:self didUpdateProgress:progress];
+	_progress = value;
+	[self.delegate operation:self didUpdateProgress:_progress];
 }
 
 - (void) start {

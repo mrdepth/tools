@@ -12,8 +12,6 @@
 static EUOperationQueue* sharedQueue;
 
 @implementation EUOperationQueue
-@synthesize delegate;
-@synthesize activeOperationCount;
 
 + (EUOperationQueue*) sharedQueue {
 	@synchronized(self) {
@@ -66,8 +64,8 @@ static EUOperationQueue* sharedQueue;
 #pragma mark - EUOperationDelegate
 
 - (void) operationDidStart:(EUOperation*)operation {
-	activeOperationCount++;
-	if ([delegate respondsToSelector:@selector(operationQueue:didStartOperation:)]) {
+	_activeOperationCount++;
+	if ([self.delegate respondsToSelector:@selector(operationQueue:didStartOperation:)]) {
 		dispatch_queue_t mainQueue = dispatch_get_main_queue();
 		if (mainQueue == dispatch_get_current_queue())
 			[self.delegate operationQueue:self didStartOperation:operation];
@@ -80,7 +78,7 @@ static EUOperationQueue* sharedQueue;
 }
 
 - (void) operation:(EUOperation*)operation didUpdateProgress:(float) progress {
-	if ([delegate respondsToSelector:@selector(operationQueue:didUpdateOperation:withProgress:)]) {
+	if ([self.delegate respondsToSelector:@selector(operationQueue:didUpdateOperation:withProgress:)]) {
 		dispatch_queue_t mainQueue = dispatch_get_main_queue();
 		if (mainQueue == dispatch_get_current_queue())
 			[self.delegate operationQueue:self didUpdateOperation:operation withProgress:progress];
@@ -93,8 +91,8 @@ static EUOperationQueue* sharedQueue;
 }
 
 - (void) operationDidFinish:(EUOperation*)operation {
-	activeOperationCount--;
-	if ([delegate respondsToSelector:@selector(operationQueue:didFinishOperation:)]) {
+	_activeOperationCount--;
+	if ([self.delegate respondsToSelector:@selector(operationQueue:didFinishOperation:)]) {
 		dispatch_queue_t mainQueue = dispatch_get_main_queue();
 		if (mainQueue == dispatch_get_current_queue())
 			[self.delegate operationQueue:self didFinishOperation:operation];

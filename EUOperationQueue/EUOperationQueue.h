@@ -20,7 +20,7 @@
 
 @interface EUOperationQueue : NSOperationQueue<EUOperationDelegate>
 @property (nonatomic, readonly) float progress;
-@property (nonatomic, assign) id<EUOperationQueueDelegate> delegate;
+@property (nonatomic, weak) id<EUOperationQueueDelegate> delegate;
 @property (nonatomic, readonly) NSInteger activeOperationCount;
 
 + (EUOperationQueue*) sharedQueue;

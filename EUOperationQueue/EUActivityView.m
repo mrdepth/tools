@@ -10,11 +10,11 @@
 #import <QuartzCore/QuartzCore.h>
 
 @interface EUActivityView()
-@property (nonatomic, retain) UIView* contentView;
-@property (nonatomic, retain) UIActivityIndicatorView* activityIndicatorView;
-@property (nonatomic, retain) UILabel* activityNameLabel;
-@property (nonatomic, retain) UIProgressView* progressView;
-@property (nonatomic, retain) NSMutableArray* operations;
+@property (nonatomic, strong) UIView* contentView;
+@property (nonatomic, strong) UIActivityIndicatorView* activityIndicatorView;
+@property (nonatomic, strong) UILabel* activityNameLabel;
+@property (nonatomic, strong) UIProgressView* progressView;
+@property (nonatomic, strong) NSMutableArray* operations;
 - (void) layout;
 - (void) deviceOrientationDidChange:(NSNotification*) notification;
 - (void) setup;
@@ -22,11 +22,6 @@
 @end
 
 @implementation EUActivityView
-@synthesize contentView;
-@synthesize activityIndicatorView;
-@synthesize activityNameLabel;
-@synthesize progressView;
-@synthesize operations;
 
 - (id)initWithFrame:(CGRect)frame {
     if (self = [super initWithFrame:frame]) {
@@ -40,11 +35,11 @@
 	[[EUOperationQueue sharedQueue] setDelegate:nil];
 	[[NSNotificationCenter defaultCenter] removeObserver:self name:UIDeviceOrientationDidChangeNotification object:nil];
 #if ! __has_feature(objc_arc)
-	[contentView release];
-	[activityIndicatorView release];
-	[activityNameLabel release];
-	[progressView release];
-	[operations release];
+	[_contentView release];
+	[_activityIndicatorView release];
+	[_activityNameLabel release];
+	[_progressView release];
+	[_operations release];
 	[super dealloc];
 #endif
 }

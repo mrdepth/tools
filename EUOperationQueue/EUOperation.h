@@ -16,10 +16,10 @@
 @end
 
 @interface EUOperation : NSBlockOperation
-@property (nonatomic, readonly, retain) NSString* identifier;
+@property (nonatomic, readonly, strong) NSString* identifier;
 @property (nonatomic) float progress;
 @property (nonatomic, copy) NSString* operationName;
-@property (nonatomic, assign) id<EUOperationDelegate> delegate;
+@property (nonatomic, weak) id<EUOperationDelegate> delegate;
 
 + (id) operationWithIdentifier:(NSString*) aIdentifier name:(NSString*) name;
 + (id) operationWithIdentifier:(NSString*) aIdentifier;
