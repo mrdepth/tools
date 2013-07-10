@@ -12,6 +12,7 @@
 static NSOperationQueue* sharedQueue = nil;
 
 @interface URLOperation: NSOperation<NSURLConnectionDelegate, NSURLConnectionDataDelegate>
+@property (nonatomic, assign) BOOL ignoreCacheData;
 @property (nonatomic, strong) NSURL* url;
 @property (nonatomic, strong) NSURLConnection* connection;
 @property (nonatomic, strong) NSHTTPURLResponse* response;
@@ -44,7 +45,8 @@ static NSOperationQueue* sharedQueue = nil;
 
 		NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:self.url];
 		NSCachedURLResponse* cachedResponse = [cache cachedResponseForRequest:request];
-		self.data = [cachedResponse data];
+		if (!self.ignoreCacheData)
+			self.data = [cachedResponse data];
 
 		if (!self.data.length) {
 			self.data = [NSMutableData data];
@@ -112,17 +114,21 @@ static NSOperationQueue* sharedQueue = nil;
 }
 
 - (void) setImageWithContentsOfURL: (NSURL*) url {
-	[self setImageWithContentsOfURL:url scale:1 completion:nil failureBlock:nil];
+	[self setImageWithContentsOfURL:url scale:1 ignoreCacheData:NO completion:nil failureBlock:nil];
 }
 
 - (void) setImageWithContentsOfURL: (NSURL*) url scale:(float) scale completion:(void(^)()) completion failureBlock:(void(^)(NSError *error)) failureBlock {
+	[self setImageWithContentsOfURL:url scale:scale ignoreCacheData:NO completion:completion failureBlock:failureBlock];
+}
+
+- (void) setImageWithContentsOfURL: (NSURL*) url scale:(float) scale ignoreCacheData:(BOOL) ignoreCacheData completion:(void(^)()) completion failureBlock:(void(^)(NSError *error)) failureBlock {
 #if ! __has_feature(objc_arc)
 	__block URLOperation* operation = [[[URLOperation alloc] init] autorelease];
 #else
 	URLOperation* operation = [[URLOperation alloc] init];
 	__block URLOperation* __weak weakOperation = operation;
 #endif
-	
+	operation.ignoreCacheData = ignoreCacheData;
 	operation.url = url;
 	operation.imageView = self;
 	

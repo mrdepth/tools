@@ -15,5 +15,6 @@
 
 - (void) setImageWithContentsOfURL: (NSURL*) url;
 - (void) setImageWithContentsOfURL: (NSURL*) url scale:(float) scale completion:(void(^)()) completion failureBlock:(void(^)(NSError *error)) failureBlock;
+- (void) setImageWithContentsOfURL: (NSURL*) url scale:(float) scale ignoreCacheData:(BOOL) ignoreCacheData completion:(void(^)()) completion failureBlock:(void(^)(NSError *error)) failureBlock;
 - (void) cancelAllURLRequests;
 @end
