@@ -147,6 +147,11 @@ int main(int argc, const char * argv[])
 				}
 			}
 		}
+		else {
+			printf("stringstool --merge -i input_file -o output_file\n");
+			printf("stringstool --replace -i input_file -o output_file\n");
+			printf("stringstool --update --base base_locale --path locales_path\n");
+		}
 	}
     return 0;
 }
