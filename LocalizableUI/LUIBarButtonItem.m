@@ -12,7 +12,7 @@
 
 - (void) awakeFromNib {
 	if (self.title.length > 0)
-		self.title = [[NSBundle mainBundle] localizedStringForKey:self.title value:@"" table:@"Xib"];
+		self.title = [[NSBundle mainBundle] localizedStringForKey:self.title value:@"" table:@"xib"];
 }
 
 @end

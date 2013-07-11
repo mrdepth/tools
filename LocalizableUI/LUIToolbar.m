@@ -13,7 +13,7 @@
 - (void) awakeFromNib {
 	for (UIBarButtonItem* item in self.items) {
 		if (item.title.length > 0)
-			item.title = [[NSBundle mainBundle] localizedStringForKey:item.title value:@"" table:@"Xib"];
+			item.title = [[NSBundle mainBundle] localizedStringForKey:item.title value:@"" table:@"xib"];
 	}
 }
 
