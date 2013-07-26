@@ -36,7 +36,7 @@
 	
 	NSString* fullPath = [[NSBundle mainBundle] retina4PathForResource:newResourceName ofType:extension];
 	if (fullPath)
-		return [UIImage retina4ImageNamed:[newResourceName stringByAppendingPathExtension:extension]];
+		return [self initWithContentsOfFile:[[NSBundle mainBundle] pathForResource:newResourceName ofType:extension]];
 	else
 		return [self retina4InitWithCoder:aDecoder];
 }

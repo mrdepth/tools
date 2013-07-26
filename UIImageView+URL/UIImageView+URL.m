@@ -99,7 +99,7 @@ static NSOperationQueue* sharedQueue = nil;
 
 
 @interface UIImageView()
-@property (nonatomic, retain) UIActivityIndicatorView* activityIndicatorView;
+@property (nonatomic, strong) UIActivityIndicatorView* activityIndicatorView;
 @end
 
 
@@ -126,7 +126,7 @@ static NSOperationQueue* sharedQueue = nil;
 	__block URLOperation* operation = [[[URLOperation alloc] init] autorelease];
 #else
 	URLOperation* operation = [[URLOperation alloc] init];
-	__block URLOperation* __weak weakOperation = operation;
+	__weak URLOperation* weakOperation = operation;
 #endif
 	operation.ignoreCacheData = ignoreCacheData;
 	operation.url = url;

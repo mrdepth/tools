@@ -11,6 +11,6 @@
 
 @interface NSBlockOperation(Completion)
 
-- (void) setCompletionBlockInCurrentThread:(void (^)(void))block;
+- (void) setCompletionBlockInMainThread:(void (^)(void))block;
 
 @end

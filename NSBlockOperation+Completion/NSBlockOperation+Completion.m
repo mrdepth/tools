@@ -11,7 +11,7 @@
 
 @implementation NSBlockOperation(Completion)
 
-- (void) setCompletionBlockInCurrentThread:(void (^)(void))block {
+- (void) setCompletionBlockInMainThread:(void (^)(void))block {
 	dispatch_queue_t queue = dispatch_get_current_queue();
 	[self setCompletionBlock:^(void) {
 		if (dispatch_get_current_queue() == queue)
