@@ -207,6 +207,17 @@
 
 - (void)reloadData {
 	[self.collectionViewData invalidate];
+	[self setNeedsLayout];
+	[_visibleViews enumerateKeysAndObjectsUsingBlock:^(id key, ASCollectionReusableView* view, BOOL *stop) {
+		[view removeFromSuperview];
+	}];
+	[_visibleViews removeAllObjects];
+	[_indexPathsForHighlightedItems removeAllObjects];
+	[_indexPathsForSelectedItems removeAllObjects];
+	[_supplementaryReuseQueue removeAllObjects];
+	[_decorationReuseQueue removeAllObjects];
+	[_visibleViews removeAllObjects];
+	[_visibleViews removeAllObjects];
 }
 
 - (NSInteger)numberOfSections {
@@ -328,6 +339,21 @@
 		self.contentSize = self.collectionViewData.collectionViewContentSize;
 		_flags.contentSizeChanging = NO;
 	}
+	if ([self.delegate respondsToSelector:@selector(scrollViewDidEndScrollingAnimation:)])
+		[self.delegate scrollViewDidEndScrollingAnimation:scrollView];
+}
+
+- (BOOL) respondsToSelector:(SEL)aSelector {
+	return [self.class instancesRespondToSelector:aSelector] ||	[self.delegate respondsToSelector:aSelector];
+}
+
+- (id) forwardingTargetForSelector:(SEL)aSelector {
+	if ([self.class instancesRespondToSelector:aSelector])
+		return self;
+	else if ([self.delegate respondsToSelector:aSelector])
+		return delegate;
+	else
+		return nil;
 }
 
 

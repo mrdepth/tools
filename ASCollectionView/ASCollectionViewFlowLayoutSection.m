@@ -138,6 +138,31 @@
 		}
 
 	}
+	
+	if (placeholderItem) {
+		if (rowIndex > 0)
+			_frame.size.height += _verticalInterstice;
+		
+		row = [ASCollectionViewFlowLayoutRow new];
+		row.section = self;
+		dimension = _frame.size.width;
+		itemRowIndex = 0;
+		row.frame = CGRectMake(_frame.origin.x, CGRectGetMaxY(_frame), _frame.size.width, 0);
+		[row addItem:placeholderItem];
+
+		row.lastRow = YES;
+		[self addRow:row];
+		[row layout];
+		
+		_frame = CGRectUnion(_frame, row.frame);
+		
+		if (hasSplit) {
+			_splitFrame = CGRectMake(_frame.origin.x, CGRectGetMaxY(_frame), _frame.size.width, _splitDimension);
+			_frame = CGRectUnion(_frame, _splitFrame);
+			hasSplit = NO;
+		}
+	}
+	
 	if (_footerDimension > 0)
 		_footerFrame = CGRectMake(_frame.origin.x, CGRectGetMaxY(_frame), _frame.size.width, _footerDimension);
 	_frame.size.height += _footerDimension;

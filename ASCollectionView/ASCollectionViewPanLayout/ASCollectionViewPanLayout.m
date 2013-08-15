@@ -52,6 +52,8 @@
 
 @property (nonatomic, strong) NSMutableArray* placeholderAvailableIndexPaths;
 @property (nonatomic, strong) NSMutableArray* placeholderUnavailableIndexPaths;
+@property (nonatomic, strong) NSMutableArray* putAvailableIndexPaths;
+@property (nonatomic, strong) NSMutableArray* putUnavailableIndexPaths;
 
 @property (nonatomic, strong) NSIndexPath* expandedIndexPath;
 
@@ -65,6 +67,7 @@
 - (void) onPan;
 - (void) onDisplayLink:(CADisplayLink*) displayLink;
 - (BOOL) canMoveItemsToIndexPath:(NSIndexPath*) indexPath;
+- (BOOL) canPutItemsToIndexPath:(NSIndexPath*) indexPath;
 @end
 
 
@@ -222,6 +225,8 @@
 		[(id<ASCollectionViewDelegatePanLayout>) self.collectionView.delegate collectionView:self.collectionView canPanItemsAtIndexPaths:indexPaths]) {
 		self.placeholderAvailableIndexPaths = [NSMutableArray new];
 		self.placeholderUnavailableIndexPaths = [NSMutableArray new];
+		self.putAvailableIndexPaths = [NSMutableArray new];
+		self.putUnavailableIndexPaths = [NSMutableArray new];
 		self.panIndexPaths = indexPaths;
 		
 		NSInteger placeholderIndex = panIndexPath.item;
@@ -268,7 +273,6 @@
 
 	[NSObject cancelPreviousPerformRequestsWithTarget:self];
 	if (self.expandedIndexPath && [self.collectionView.delegate respondsToSelector:@selector(collectionView:didPutItemsAtIndexPaths:toItemAtIndexPath:)]) {
-		
 		[(id<ASCollectionViewDelegatePanLayout>) self.collectionView.delegate collectionView:self.collectionView didPutItemsAtIndexPaths:self.panIndexPaths toItemAtIndexPath:self.expandedIndexPath];
 
 		ASCollectionViewLayoutAttributes* layoutAttributes = [panCell.layoutAttributes copy];
@@ -352,6 +356,8 @@
 	
 	self.placeholderAvailableIndexPaths = nil;
 	self.placeholderUnavailableIndexPaths = nil;
+	self.putAvailableIndexPaths = nil;
+	self.putUnavailableIndexPaths = nil;
 	
 	self.finalLayoutAttributes = nil;
 }
@@ -386,8 +392,7 @@
 
 
 		if ((fabs(d.x) < cell.frame.size.width / 3.0 && fabs(d.y) < cell.frame.size.height / 3.0) &&
-			[self.collectionView.delegate respondsToSelector:@selector(collectionView:canPutItemsAtIndexPaths:toItemAtIndexPath:)] &&
-			[(id<ASCollectionViewDelegatePanLayout>) self.collectionView.delegate collectionView:self.collectionView canPutItemsAtIndexPaths:self.panIndexPaths toItemAtIndexPath:indexPath]) {
+			[self canPutItemsToIndexPath:indexPath]) {
 			
 			if (![indexPath isEqual:self.expandedIndexPath])
 				[self performSelector:@selector(expandCellAtIndexPath:) withObject:indexPath afterDelay:0.5];
@@ -480,6 +485,25 @@
 			[self.placeholderUnavailableIndexPaths addObject:indexPath];
 	}
 	return canMove;
+}
+
+- (BOOL) canPutItemsToIndexPath:(NSIndexPath*) indexPath {
+	BOOL canPut = NO;
+	if (![self.putUnavailableIndexPaths containsObject:indexPath]) {
+		if ([self.putAvailableIndexPaths containsObject:indexPath])
+			canPut = YES;
+		else if ([self.collectionView.delegate respondsToSelector:@selector(collectionView:canPutItemsAtIndexPaths:toItemAtIndexPath:)]) {
+			if ([(id<ASCollectionViewDelegatePanLayout>) self.collectionView.delegate collectionView:self.collectionView canPutItemsAtIndexPaths:self.panIndexPaths toItemAtIndexPath:indexPath]) {
+				[self.putAvailableIndexPaths addObject:indexPath];
+				canPut = YES;
+			}
+			else
+				[self.putUnavailableIndexPaths addObject:indexPath];
+		}
+		else
+			[self.putUnavailableIndexPaths addObject:indexPath];
+	}
+	return canPut;
 }
 
 - (void) expandCellAtIndexPath:(NSIndexPath*) indexPath {

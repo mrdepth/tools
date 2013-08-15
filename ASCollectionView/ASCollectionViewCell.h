@@ -9,9 +9,9 @@
 #import "ASCollectionReusableView.h"
 
 @interface ASCollectionViewCell : ASCollectionReusableView
-@property (nonatomic, assign) BOOL highlighted;
-@property (nonatomic, assign) BOOL selected;
-@property (nonatomic, assign) BOOL editing;
+@property (nonatomic, assign, getter = isHighlighted) BOOL highlighted;
+@property (nonatomic, assign, getter = isSelected) BOOL selected;
+@property (nonatomic, assign, getter = isEditing) BOOL editing;
 
 - (void) setSelected:(BOOL)selected animated:(BOOL)animated;
 - (void) setHighlighted:(BOOL)highlighted animated:(BOOL)animated;
