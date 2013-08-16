@@ -8,6 +8,12 @@
 
 #import <UIKit/UIKit.h>
 
+@protocol CollapsableView <NSObject>
+@property (nonatomic, assign) BOOL collapsed;
+
+
+@end
+
 @protocol CollapsableTableViewDelegate <UITableViewDelegate>
 @optional
 - (BOOL) tableView:(UITableView *)tableView sectionIsCollapsed:(NSInteger) section;

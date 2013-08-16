@@ -15,7 +15,7 @@
 	for (int i = 0; i < n; i++) {
 		NSString* title = [self titleForSegmentAtIndex:i];
 		if (title.length > 0)
-			[self setTitle:[[NSBundle mainBundle] localizedStringForKey:title value:@"" table:@"Xib"] forSegmentAtIndex:i];
+			[self setTitle:[[NSBundle mainBundle] localizedStringForKey:title value:@"" table:@"xib"] forSegmentAtIndex:i];
 	}
 }
 

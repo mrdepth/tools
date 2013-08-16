@@ -222,7 +222,7 @@
 #pragma mark - UITableViewDataSource
 
 - (NSInteger) tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-	NSNumber* collapsed = [self.sections objectAtIndex:section];
+	NSNumber* collapsed = self.sections[section];
 	if ((NSNull*) collapsed == [NSNull null]) {
 		if ([self.delegate respondsToSelector:@selector(tableView:sectionIsCollapsed:)])
 			collapsed = @([delegate tableView:tableView sectionIsCollapsed:section]);
@@ -241,6 +241,18 @@
 		UIView* view = [delegate tableView:self viewForHeaderInSection:section];
 		if (!view)
 			return nil;
+		if ([view respondsToSelector:@selector(setCollapsed:)]) {
+			NSNumber* collapsed = self.sections[section];
+			if ((NSNull*) collapsed == [NSNull null]) {
+				if ([self.delegate respondsToSelector:@selector(tableView:sectionIsCollapsed:)])
+					collapsed = @([delegate tableView:tableView sectionIsCollapsed:section]);
+				else
+					collapsed =  @(NO);
+				[self.sections replaceObjectAtIndex:section withObject:collapsed];
+			}
+			[(id)view setCollapsed:[collapsed boolValue]];
+		}
+		
 		UIGestureRecognizer* recognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(onTap:)];
 		[view addGestureRecognizer:recognizer];
 #if ! __has_feature(objc_arc)
@@ -267,7 +279,7 @@
 				collapsed =  @(NO);
 			[self.sections replaceObjectAtIndex:sectionIndex withObject:collapsed];
 		}
-		if ([delegate respondsToSelector:@selector(tableView:canCollapsSection:)] && [delegate tableView:self canCollapsSection:sectionIndex]) {
+		if (![delegate respondsToSelector:@selector(tableView:canCollapsSection:)] || [delegate tableView:self canCollapsSection:sectionIndex]) {
 			[self.sections replaceObjectAtIndex:sectionIndex withObject:@(![collapsed boolValue])];
 			if ([collapsed boolValue] && [delegate respondsToSelector:@selector(tableView:didExpandSection:)])
 				[delegate tableView:self didExpandSection:sectionIndex];

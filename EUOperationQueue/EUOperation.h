@@ -28,6 +28,6 @@
 - (id) initWithIdentifier:(NSString*) aIdentifier name:(NSString*) name;
 - (id) initWithIdentifier:(NSString*) aIdentifier;
 
-- (void) setCompletionBlockInCurrentThread:(void (^)(void))block;
+- (void) setCompletionBlockInMainThread:(void (^)(void))block;
 
 @end

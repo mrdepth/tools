@@ -66,11 +66,10 @@ static EUOperationQueue* sharedQueue;
 - (void) operationDidStart:(EUOperation*)operation {
 	_activeOperationCount++;
 	if ([self.delegate respondsToSelector:@selector(operationQueue:didStartOperation:)]) {
-		dispatch_queue_t mainQueue = dispatch_get_main_queue();
-		if (mainQueue == dispatch_get_current_queue())
+		if ([NSThread isMainThread])
 			[self.delegate operationQueue:self didStartOperation:operation];
 		else {
-			dispatch_sync(mainQueue, ^{
+			dispatch_sync(dispatch_get_main_queue(), ^{
 				[self.delegate operationQueue:self didStartOperation:operation];
 			});
 		}
@@ -79,11 +78,10 @@ static EUOperationQueue* sharedQueue;
 
 - (void) operation:(EUOperation*)operation didUpdateProgress:(float) progress {
 	if ([self.delegate respondsToSelector:@selector(operationQueue:didUpdateOperation:withProgress:)]) {
-		dispatch_queue_t mainQueue = dispatch_get_main_queue();
-		if (mainQueue == dispatch_get_current_queue())
+		if ([NSThread isMainThread])
 			[self.delegate operationQueue:self didUpdateOperation:operation withProgress:progress];
 		else {
-			dispatch_sync(mainQueue, ^{
+			dispatch_sync(dispatch_get_main_queue(), ^{
 				[self.delegate operationQueue:self didUpdateOperation:operation withProgress:progress];
 			});
 		}

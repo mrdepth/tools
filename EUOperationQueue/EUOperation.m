@@ -61,13 +61,12 @@
 }
 #endif
 
-- (void) setCompletionBlockInCurrentThread:(void (^)(void))block {
-	dispatch_queue_t queue = dispatch_get_current_queue();
+- (void) setCompletionBlockInMainThread:(void (^)(void))block {
 	[self setCompletionBlock:^(void) {
-		if (dispatch_get_current_queue() == queue)
+		if ([NSThread isMainThread])
 			block();
 		else
-			dispatch_sync(queue, block);
+			dispatch_sync(dispatch_get_main_queue(), block);
 	}];
 }
 

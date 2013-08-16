@@ -15,7 +15,7 @@
 	for (int i = 0; i < 3; i++) {
 		NSString* title = [self titleForState:states[i]];
 		if (title.length > 0)
-			[self setTitle:[[NSBundle mainBundle] localizedStringForKey:title value:@"" table:@"Xib"] forState:states[i]];
+			[self setTitle:[[NSBundle mainBundle] localizedStringForKey:title value:@"" table:@"xib"] forState:states[i]];
 	}
 }
 
