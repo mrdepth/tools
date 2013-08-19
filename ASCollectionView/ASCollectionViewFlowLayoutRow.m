@@ -65,6 +65,12 @@
 		x += frame.size.width + horizontalInterstice;
 		_frame.size.height = MAX(_frame.size.height, frame.size.height);
 	}
+	
+	for (ASCollectionViewFlowLayoutItem* item in self.items) {
+		CGRect frame = item.frame;
+		frame.origin.y += (_frame.size.height - item.frame.size.height) / 2.0;
+		item.frame = frame;
+	}
 }
 
 @end

@@ -40,9 +40,7 @@
 @end
 
 
-@interface ASCollectionViewPanLayout() {
-	NSInteger _count;
-}
+@interface ASCollectionViewPanLayout()
 @property (nonatomic, weak, readwrite) ASCollectionView *collectionView;
 @property (nonatomic, strong) ASCollectionViewCell* panCell;
 @property (nonatomic, strong) NSMutableDictionary* finalLayoutAttributes;
@@ -75,7 +73,6 @@
 
 - (id) init {
 	if (self = [super init]) {
-		_count = 100;
 	}
 	return self;
 }
