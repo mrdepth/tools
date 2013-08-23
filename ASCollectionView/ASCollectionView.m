@@ -57,7 +57,21 @@
 
 @property (nonatomic, strong) ASCollectionViewData* collectionViewData;
 
+- (void) setup;
 - (void) updateVisibleCells;
+- (ASCollectionViewCell *)createPreparedCellForItemAtIndexPath:(NSIndexPath *)indexPath withLayoutAttributes:(ASCollectionViewLayoutAttributes *)layoutAttributes;
+- (ASCollectionReusableView *)createPreparedSupplementaryViewForElementOfKind:(NSString *)kind
+																  atIndexPath:(NSIndexPath *)indexPath
+														 withLayoutAttributes:(ASCollectionViewLayoutAttributes *)layoutAttributes;
+- (ASCollectionReusableView *)createPreparedDecorationViewForElementOfKind:(NSString *)kind
+															   atIndexPath:(NSIndexPath *)indexPath
+													  withLayoutAttributes:(ASCollectionViewLayoutAttributes *)layoutAttributes;
+- (void) reuseView:(ASCollectionReusableView*) view;
+- (void)setupCellAnimations;
+- (void)endItemAnimations;
+- (void)updateRowsAtIndexPaths:(NSArray *)indexPaths updateAction:(ASCollectionUpdateAction)updateAction;
+- (void)updateSections:(NSIndexSet *)sections updateAction:(ASCollectionUpdateAction)updateAction;
+
 - (NSMutableArray *)arrayForUpdateAction:(ASCollectionUpdateAction) updateAction;
 - (void) onCellTap:(UITapGestureRecognizer*) recognizer;
 @end
@@ -277,19 +291,29 @@
 }
 
 - (void)insertSections:(NSIndexSet *)sections {
-	
+	[self updateSections:sections updateAction:ASCollectionUpdateActionInsert];
 }
 
 - (void)deleteSections:(NSIndexSet *)sections {
-	
+	[self updateSections:sections updateAction:ASCollectionUpdateActionDelete];
 }
 
 - (void)reloadSections:(NSIndexSet *)sections {
-	
+	[self updateSections:sections updateAction:ASCollectionUpdateActionReload];
 }
 
 - (void)moveSection:(NSInteger)section toSection:(NSInteger)newSection {
+    BOOL updating = _flags.updating;
+    if (!updating)
+		[self setupCellAnimations];
 	
+    NSMutableArray *array = [self arrayForUpdateAction:ASCollectionUpdateActionMove];
+	NSIndexPath* indexPath = [NSIndexPath indexPathForItem:NSNotFound inSection:section];
+	NSIndexPath* newIndexPath = [NSIndexPath indexPathForItem:NSNotFound inSection:newSection];
+	ASCollectionViewUpdateItem *updateItem = [[ASCollectionViewUpdateItem alloc] initWithInitialIndexPath:indexPath finalIndexPath:newIndexPath updateAction:ASCollectionUpdateActionMove];
+	[array addObject:updateItem];
+    if (!updating)
+		[self endItemAnimations];
 }
 
 - (void)insertItemsAtIndexPaths:(NSArray *)indexPaths {
@@ -523,27 +547,48 @@
 	[allInserts addObjectsFromArray:_moveItems];
 	[allInserts sortUsingSelector:@selector(compareToInsert:)];
 	
-	for (ASCollectionViewUpdateItem* updateItem in allRemoves)
-		[sections[updateItem.indexPathBeforeUpdate.section] removeObjectAtIndex:updateItem.indexPathBeforeUpdate.item];
+	NSMutableDictionary* removedSections = [NSMutableDictionary new];
+	
+	for (ASCollectionViewUpdateItem* updateItem in allRemoves) {
+		if ([updateItem isSectionUpdate]) {
+			removedSections[@(updateItem.indexPathAfterUpdate.section)] = sections[updateItem.indexPathAfterUpdate.section];
+			[sections removeObjectAtIndex:updateItem.indexPathBeforeUpdate.section];
+		}
+		else
+			[sections[updateItem.indexPathBeforeUpdate.section] removeObjectAtIndex:updateItem.indexPathBeforeUpdate.item];
+	}
 	
 	for (ASCollectionViewUpdateItem* updateItem in allInserts) {
-		if (updateItem.updateAction == ASCollectionUpdateActionInsert)
-			[sections[updateItem.indexPathAfterUpdate.section] insertObject:[NSNull null] atIndex:updateItem.indexPathAfterUpdate.item];
-		else
-			[sections[updateItem.indexPathAfterUpdate.section] insertObject:updateItem.indexPathBeforeUpdate atIndex:updateItem.indexPathAfterUpdate.item];
+		if (updateItem.updateAction == ASCollectionUpdateActionInsert) {
+			if ([updateItem isSectionUpdate])
+				[sections insertObject:[NSNull null] atIndex:updateItem.indexPathAfterUpdate.section];
+			else
+				[sections[updateItem.indexPathAfterUpdate.section] insertObject:[NSNull null] atIndex:updateItem.indexPathAfterUpdate.item];
+		}
+		else {
+			if ([updateItem isSectionUpdate])
+				[sections insertObject:removedSections[@(updateItem.indexPathBeforeUpdate.section)] atIndex:updateItem.indexPathAfterUpdate.section];
+			else
+				[sections[updateItem.indexPathAfterUpdate.section] insertObject:updateItem.indexPathBeforeUpdate atIndex:updateItem.indexPathAfterUpdate.item];
+		}
 	}
 	
 	_indexesOldToNewMap = [NSMutableDictionary new];
 	_indexesNewToOldMap = [NSMutableDictionary new];
 	
+	numberOfSections = sections.count;
+	
 	for (NSInteger sectionIndex = 0; sectionIndex < numberOfSections; sectionIndex++) {
-		NSInteger numberOfItems = [sections[sectionIndex] count];
-		for (NSInteger itemIndex = 0; itemIndex < numberOfItems; itemIndex++) {
-			id object = sections[sectionIndex][itemIndex];
-			if ([object isKindOfClass:[NSIndexPath class]]) {
-				NSIndexPath* newIndexPath = [NSIndexPath indexPathForItem:itemIndex inSection:sectionIndex];
-				_indexesOldToNewMap[object] = newIndexPath;
-				_indexesNewToOldMap[newIndexPath] = object;
+		NSArray* section = sections[sectionIndex];
+		if ([section isKindOfClass:[NSArray class]]) {
+			NSInteger numberOfItems = section.count;
+			for (NSInteger itemIndex = 0; itemIndex < numberOfItems; itemIndex++) {
+				id object = sections[sectionIndex][itemIndex];
+				if ([object isKindOfClass:[NSIndexPath class]]) {
+					NSIndexPath* newIndexPath = [NSIndexPath indexPathForItem:itemIndex inSection:sectionIndex];
+					_indexesOldToNewMap[object] = newIndexPath;
+					_indexesNewToOldMap[newIndexPath] = object;
+				}
 			}
 		}
 	}
@@ -589,7 +634,51 @@
 	
 	for (ASCollectionViewUpdateItem* updateItem in updateActions) {
 		if (updateItem.isSectionUpdate) {
-			
+			if (updateItem.updateAction == ASCollectionUpdateActionDelete) {
+				NSInteger section = updateItem.indexPathBeforeUpdate.section;
+				NSMutableArray* keysToDelete = [NSMutableArray new];
+				
+				[visibleViews enumerateKeysAndObjectsUsingBlock:^(id key, ASCollectionReusableView* view, BOOL *stop) {
+					if (view.layoutAttributes.indexPath.section == section) {
+						ASCollectionViewLayoutAttributes* finalAttributes = [self.collectionViewLayout finalLayoutAttributesForDisappearingItemAtIndexPath:updateItem.indexPathBeforeUpdate];
+						if (!finalAttributes) {
+							finalAttributes = [view.layoutAttributes copy];
+							finalAttributes.alpha = 0.0;
+						}
+						[animations addObject:@{@"view" : view, @"initialAttributes" : view.layoutAttributes, @"finalAttributes" : finalAttributes}];
+						[toReuse addObject:view];
+						[keysToDelete addObject:key];
+					}
+				}];
+				
+				[visibleViews removeObjectsForKeys:keysToDelete];
+			}
+			else if (updateItem.updateAction == ASCollectionUpdateActionInsert) {
+				NSInteger section = updateItem.indexPathAfterUpdate.section;
+				NSMutableArray* keysToDelete = [NSMutableArray new];
+
+				[newlyVisibleLayoutAttributes enumerateKeysAndObjectsUsingBlock:^(id key, ASCollectionViewLayoutAttributes* finalAttributes, BOOL *stop) {
+					if (finalAttributes.indexPath.section == section) {
+						ASCollectionViewLayoutAttributes* initialAttributes = [self.collectionViewLayout initialLayoutAttributesForAppearingItemAtIndexPath:finalAttributes.indexPath];
+						if (!initialAttributes) {
+							initialAttributes = [finalAttributes copy];
+							initialAttributes.alpha = 0.0;
+						}
+						
+						ASCollectionReusableView* view = [self createPreparedCellForItemAtIndexPath:initialAttributes.indexPath withLayoutAttributes:initialAttributes];
+						[self addSubview:view];
+						_visibleViews[key] = view;
+						[animations addObject:@{@"view" : view, @"initialAttributes" : initialAttributes, @"finalAttributes" : finalAttributes, @"ignoreCurrentState" : @(YES)}];
+						
+
+						
+						[keysToDelete addObject:key];
+					}
+				}];
+				
+				[newlyVisibleLayoutAttributes removeObjectsForKeys:keysToDelete];
+			}
+#warning TODO: move sections
 		}
 		else {
 			if (updateItem.updateAction == ASCollectionUpdateActionDelete) {
@@ -842,6 +931,22 @@
         [array addObject:updateItem];
     }
 	
+    if (!updating)
+		[self endItemAnimations];
+}
+
+- (void)updateSections:(NSIndexSet *)sections updateAction:(ASCollectionUpdateAction)updateAction {
+    BOOL updating = _flags.updating;
+    if (!updating)
+		[self setupCellAnimations];
+	
+    NSMutableArray *array = [self arrayForUpdateAction:updateAction];
+	
+	[sections enumerateIndexesUsingBlock:^(NSUInteger idx, BOOL *stop) {
+        ASCollectionViewUpdateItem *updateItem = [[ASCollectionViewUpdateItem alloc] initWithAction:updateAction forIndexPath:[NSIndexPath indexPathForItem:NSNotFound inSection:idx]];
+        [array addObject:updateItem];
+	}];
+
     if (!updating)
 		[self endItemAnimations];
 }

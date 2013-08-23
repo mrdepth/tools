@@ -41,7 +41,7 @@
 }
 
 + (id) keyForElementAtIndexPath:(NSIndexPath*) indexPath withElementCategory:(ASCollectionElementCategory) elementCategory elementKind:(NSString*) elementKind {
-	NSUInteger hash = indexPath.hash;
+	NSUInteger hash = (indexPath.section << 16) + indexPath.item;
 	hash = (((hash << 2) + elementCategory) << 4) + [elementKind hash];
 	return @(hash);
 }
