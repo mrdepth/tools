@@ -207,7 +207,17 @@
 	if (![_indexPathsForSelectedItems containsObject:indexPath]) {
 		[_indexPathsForSelectedItems addObject:indexPath];
 		ASCollectionViewCell* cell = [self cellForItemAtIndexPath:indexPath];
-		[cell setSelected:YES animated:YES];
+		
+		if (animated) {
+			[UIView animateWithDuration:ASCollectionViewSelectionAnimationDuration
+								  delay:0
+								options:UIViewAnimationOptionBeginFromCurrentState
+							 animations:^{
+								 [cell setSelected:YES animated:YES];
+							 } completion:nil];
+		}
+		else
+			[cell setSelected:YES animated:NO];
 	}
 }
 
@@ -215,7 +225,16 @@
 	if ([_indexPathsForSelectedItems containsObject:indexPath]) {
 		[_indexPathsForSelectedItems removeObject:indexPath];
 		ASCollectionViewCell* cell = [self cellForItemAtIndexPath:indexPath];
-		[cell setSelected:NO animated:YES];
+		if (animated) {
+			[UIView animateWithDuration:ASCollectionViewSelectionAnimationDuration
+								  delay:0
+								options:UIViewAnimationOptionBeginFromCurrentState
+							 animations:^{
+								 [cell setSelected:NO animated:YES];
+							 } completion:nil];
+		}
+		else
+			[cell setSelected:NO animated:NO];
 	}
 }
 
@@ -303,6 +322,9 @@
 }
 
 - (void)moveSection:(NSInteger)section toSection:(NSInteger)newSection {
+	if (!self.collectionViewData)
+		return;
+
     BOOL updating = _flags.updating;
     if (!updating)
 		[self setupCellAnimations];
@@ -329,6 +351,9 @@
 }
 
 - (void)moveItemAtIndexPath:(NSIndexPath *)indexPath toIndexPath:(NSIndexPath *)newIndexPath {
+	if (!self.collectionViewData)
+		return;
+
     BOOL updating = _flags.updating;
     if (!updating)
 		[self setupCellAnimations];
@@ -920,6 +945,9 @@
 }
 
 - (void)updateRowsAtIndexPaths:(NSArray *)indexPaths updateAction:(ASCollectionUpdateAction)updateAction {
+	if (!self.collectionViewData)
+		return;
+
     BOOL updating = _flags.updating;
     if (!updating)
 		[self setupCellAnimations];
@@ -936,6 +964,9 @@
 }
 
 - (void)updateSections:(NSIndexSet *)sections updateAction:(ASCollectionUpdateAction)updateAction {
+	if (!self.collectionViewData)
+		return;
+	
     BOOL updating = _flags.updating;
     if (!updating)
 		[self setupCellAnimations];
@@ -987,18 +1018,23 @@
 	if (recognizer.state == UIGestureRecognizerStateEnded) {
 		ASCollectionViewCell* cell = (ASCollectionViewCell*) recognizer.view;
 		NSIndexPath* indexPath = [self indexPathForCell:cell];
-		if ([_indexPathsForSelectedItems containsObject:indexPath]) {
-			[cell setSelected:NO animated:YES];
-			[_indexPathsForSelectedItems removeObject:indexPath];
-			if ([self.delegate respondsToSelector:@selector(collectionView:didDeselectItemAtIndexPath:)])
-				[self.delegate collectionView:self didDeselectItemAtIndexPath:indexPath];
-		}
-		else {
-			[cell setSelected:YES animated:YES];
-			[_indexPathsForSelectedItems addObject:indexPath];
-			if ([self.delegate respondsToSelector:@selector(collectionView:didSelectItemAtIndexPath:)])
-				[self.delegate collectionView:self didSelectItemAtIndexPath:indexPath];
-		}
+		[UIView animateWithDuration:ASCollectionViewSelectionAnimationDuration
+							  delay:0
+							options:UIViewAnimationOptionBeginFromCurrentState
+						 animations:^{
+							 if ([_indexPathsForSelectedItems containsObject:indexPath]) {
+								 [cell setSelected:NO animated:YES];
+								 [_indexPathsForSelectedItems removeObject:indexPath];
+								 if ([self.delegate respondsToSelector:@selector(collectionView:didDeselectItemAtIndexPath:)])
+									 [self.delegate collectionView:self didDeselectItemAtIndexPath:indexPath];
+							 }
+							 else {
+								 [cell setSelected:YES animated:YES];
+								 [_indexPathsForSelectedItems addObject:indexPath];
+								 if ([self.delegate respondsToSelector:@selector(collectionView:didSelectItemAtIndexPath:)])
+									 [self.delegate collectionView:self didSelectItemAtIndexPath:indexPath];
+							 }
+						 } completion:nil];
 	}
 }
 
