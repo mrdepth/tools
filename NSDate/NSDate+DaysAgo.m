@@ -26,4 +26,32 @@
 		return [NSString stringWithFormat:NSLocalizedString(@"%d days ago", @"%d days ago"), days];
 }
 
+- (NSString*) daysAgoStringWithTime:(BOOL) printTime {
+	int days = [self daysAgo];
+	NSString* timeString = nil;
+	if (printTime) {
+		static NSDateFormatter* dateFormatter = nil;
+		if (!dateFormatter) {
+			dateFormatter = [NSDateFormatter new];
+			[dateFormatter setLocale:[[NSLocale alloc] initWithLocaleIdentifier:@"en_GB"]];
+			//[dateFormatter setTimeZone:[NSTimeZone timeZoneForSecondsFromGMT:0]];
+			[dateFormatter setDateFormat:@"HH:mm:ss"];
+		}
+		timeString = [dateFormatter stringFromDate:self];
+	}
+
+	NSString* s;
+	if (days == 0)
+		s = NSLocalizedString(@"Today", @"Today");
+	else if (days == 1)
+		s = NSLocalizedString(@"Yesterday", @"Yesterday");
+	else
+		s = [NSString stringWithFormat:NSLocalizedString(@"%d days ago", @"%d days ago"), days];
+	
+	if (timeString)
+		return [NSString stringWithFormat:NSLocalizedString(@"%@ at %@", nil), s, timeString];
+	else
+		return s;
+}
+
 @end

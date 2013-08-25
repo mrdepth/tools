@@ -12,5 +12,6 @@
 
 - (NSInteger) daysAgo;
 + (NSString*) stringWithDaysAgo:(NSInteger) days;
+- (NSString*) daysAgoStringWithTime:(BOOL) printTime;
 
 @end
