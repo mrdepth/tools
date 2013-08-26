@@ -23,4 +23,12 @@
 	completionBlock:(void (^)(UIAlertView* alertView, NSInteger selectedButtonIndex)) completionBlock
 		cancelBlock:(void (^)()) cancelBlock;
 
+- (id)initWithTitle:(NSString *)title
+			message:(NSString *)message
+  cancelButtonTitle:(NSString *)cancelButtonTitle
+  otherButtonTitles:(NSArray*) titles
+	completionBlock:(void (^)(UIAlertView* alertView, NSInteger selectedButtonIndex)) completionBlock
+		cancelBlock:(void (^)()) cancelBlock
+    didDismissBlock:(void (^)(UIAlertView* alertView, NSInteger selectedButtonIndex)) didDismissBlock;
+
 @end
