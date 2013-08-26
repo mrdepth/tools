@@ -12,6 +12,7 @@
 @interface UIAlertView()
 @property (nonatomic, copy) void (^completionBlock)(UIAlertView* alertView, NSInteger selectedButtonIndex);
 @property (nonatomic, copy) void (^cancelBlock)();
+@property (nonatomic, copy) void (^didDismissBlock)(UIAlertView* alertView, NSInteger selectedButtonIndex);
 @end
 
 @implementation UIAlertView (Block)
@@ -44,6 +45,19 @@
 	return self;
 }
 
+- (id)initWithTitle:(NSString *)title
+			message:(NSString *)message
+  cancelButtonTitle:(NSString *)cancelButtonTitle
+  otherButtonTitles:(NSArray*) titles
+	completionBlock:(void (^)(UIAlertView* alertView, NSInteger selectedButtonIndex)) completionBlock
+		cancelBlock:(void (^)()) cancelBlock
+    didDismissBlock:(void (^)(UIAlertView* alertView, NSInteger selectedButtonIndex)) didDismissBlock {
+	if (self = [self initWithTitle:title message:message cancelButtonTitle:cancelButtonTitle otherButtonTitles:titles completionBlock:completionBlock cancelBlock:cancelBlock]) {
+        self.didDismissBlock = didDismissBlock;
+	}
+	return self;
+}
+
 #pragma mark UIAlertViewDelegate
 
 - (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
@@ -61,6 +75,15 @@
 	}
 	self.completionBlock = nil;
 }
+
+- (void)alertView:(UIAlertView *)alertView didDismissWithButtonIndex:(NSInteger)buttonIndex
+{
+    if (self.didDismissBlock) {
+        self.didDismissBlock(self, buttonIndex);
+        self.didDismissBlock = nil;
+    }
+}
+
 #pragma mark - Private
 
 - (void) setCompletionBlock:(void (^)(UIAlertView*, NSInteger))completionBlock {
@@ -77,6 +100,14 @@
 
 - (void(^)()) cancelBlock {
 	return objc_getAssociatedObject(self, @"cancelBlock");
+}
+
+- (void) setDidDismissBlock:(void (^)(UIAlertView*, NSInteger))didDismissBlock {
+	objc_setAssociatedObject(self, @"didDismissBlock", [didDismissBlock copy], OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+}
+
+- (void(^)(UIAlertView*, NSInteger)) didDismissBlock {
+	return objc_getAssociatedObject(self, @"didDismissBlock");
 }
 
 
