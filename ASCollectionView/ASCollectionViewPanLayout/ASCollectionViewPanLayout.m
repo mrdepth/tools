@@ -210,10 +210,16 @@
 
 - (void) beginPanWithCell:(ASCollectionViewCell*) cell {
 	NSIndexPath* panIndexPath = [self.collectionView indexPathForCell:cell];
-	NSMutableArray* indexPaths = [NSMutableArray arrayWithArray:[self.collectionView indexPathsForSelectedItems]];
+	NSMutableArray* indexPaths;
 	
-	if (![indexPaths containsObject:panIndexPath])
-		[indexPaths addObject:panIndexPath];
+	if (_allowsMultiplePan) {
+		indexPaths = [NSMutableArray arrayWithArray:[self.collectionView indexPathsForSelectedItems]];
+		if (![indexPaths containsObject:panIndexPath])
+			[indexPaths addObject:panIndexPath];
+	}
+	else
+		indexPaths = [NSMutableArray arrayWithObject:panIndexPath];
+	
 	
 	[indexPaths sortUsingSelector:@selector(compare:)];
 	

@@ -21,6 +21,7 @@
 @end
 
 @interface ASCollectionViewPanLayout : ASCollectionViewFlowLayout
+@property (nonatomic, assign) BOOL allowsMultiplePan;
 
 - (UIView*) panViewContainer;
 
