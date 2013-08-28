@@ -162,7 +162,7 @@
 }
 
 - (NSIndexPath*) collectionView:(ASCollectionView *)collectionView layout:(ASCollectionViewLayout*)collectionViewLayout referenceIndexPathForPlaceholderInSection:(NSInteger)section {
-	return self.placeholderIndexPath;
+	return self.placeholderIndexPath && self.placeholderIndexPath.section == section ? self.placeholderIndexPath : nil;
 }
 
 #pragma mark - Private
@@ -209,7 +209,6 @@
 }
 
 - (void) beginPanWithCell:(ASCollectionViewCell*) cell {
-	self.panCell = cell;
 	NSIndexPath* panIndexPath = [self.collectionView indexPathForCell:cell];
 	NSMutableArray* indexPaths = [NSMutableArray arrayWithArray:[self.collectionView indexPathsForSelectedItems]];
 	
@@ -220,6 +219,8 @@
 	
 	if ([self.collectionView.delegate respondsToSelector:@selector(collectionView:canPanItemsAtIndexPaths:)] &&
 		[(id<ASCollectionViewDelegatePanLayout>) self.collectionView.delegate collectionView:self.collectionView canPanItemsAtIndexPaths:indexPaths]) {
+		self.panCell = cell;
+
 		self.placeholderAvailableIndexPaths = [NSMutableArray new];
 		self.placeholderUnavailableIndexPaths = [NSMutableArray new];
 		self.putAvailableIndexPaths = [NSMutableArray new];
@@ -263,6 +264,10 @@
 
 - (void) endPan {
 	self.autoscrollSpeed = 0;
+	
+	if (self.panIndexPaths.count == 0)
+		return;
+
 	
 	ASCollectionViewCell* panCell = self.panCell;
 	NSMutableArray* destination = nil;

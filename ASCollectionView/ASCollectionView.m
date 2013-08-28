@@ -1018,6 +1018,15 @@
 	if (recognizer.state == UIGestureRecognizerStateEnded) {
 		ASCollectionViewCell* cell = (ASCollectionViewCell*) recognizer.view;
 		NSIndexPath* indexPath = [self indexPathForCell:cell];
+		if (cell.selected) {
+			if ([self.delegate respondsToSelector:@selector(collectionView:shouldDeselectItemAtIndexPath:)] && ![self.delegate collectionView:self shouldDeselectItemAtIndexPath:indexPath])
+				return;
+		}
+		else {
+			if ([self.delegate respondsToSelector:@selector(collectionView:shouldSelectItemAtIndexPath:)] && ![self.delegate collectionView:self shouldSelectItemAtIndexPath:indexPath])
+				return;
+		}
+		
 		[UIView animateWithDuration:ASCollectionViewSelectionAnimationDuration
 							  delay:0
 							options:UIViewAnimationOptionBeginFromCurrentState
