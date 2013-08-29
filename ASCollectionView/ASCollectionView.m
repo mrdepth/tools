@@ -117,7 +117,9 @@
 	CGRect oldFrame = self.frame;
 	[super setFrame:frame];
 	if (oldFrame.size.width != frame.size.width) {
-		[self performBatchUpdates:nil completion:nil];
+		[self.collectionViewData invalidate];
+		[self setNeedsLayout];
+//		[self performBatchUpdates:nil completion:nil];
 	}
 	else if (oldFrame.size.height != frame.size.height) {
 		[self.collectionViewData invalidate];
@@ -1027,23 +1029,29 @@
 				return;
 		}
 		
+		BOOL selected = ![_indexPathsForSelectedItems containsObject:indexPath];
+		
 		[UIView animateWithDuration:ASCollectionViewSelectionAnimationDuration
 							  delay:0
 							options:UIViewAnimationOptionBeginFromCurrentState
 						 animations:^{
-							 if ([_indexPathsForSelectedItems containsObject:indexPath]) {
-								 [cell setSelected:NO animated:YES];
-								 [_indexPathsForSelectedItems removeObject:indexPath];
-								 if ([self.delegate respondsToSelector:@selector(collectionView:didDeselectItemAtIndexPath:)])
-									 [self.delegate collectionView:self didDeselectItemAtIndexPath:indexPath];
-							 }
-							 else {
+							 if (selected) {
 								 [cell setSelected:YES animated:YES];
 								 [_indexPathsForSelectedItems addObject:indexPath];
-								 if ([self.delegate respondsToSelector:@selector(collectionView:didSelectItemAtIndexPath:)])
-									 [self.delegate collectionView:self didSelectItemAtIndexPath:indexPath];
+							 }
+							 else {
+								 [cell setSelected:NO animated:YES];
+								 [_indexPathsForSelectedItems removeObject:indexPath];
 							 }
 						 } completion:nil];
+		if (selected) {
+			if ([self.delegate respondsToSelector:@selector(collectionView:didSelectItemAtIndexPath:)])
+				[self.delegate collectionView:self didSelectItemAtIndexPath:indexPath];
+		}
+		else {
+			if ([self.delegate respondsToSelector:@selector(collectionView:didDeselectItemAtIndexPath:)])
+				[self.delegate collectionView:self didDeselectItemAtIndexPath:indexPath];
+		}
 	}
 }
 

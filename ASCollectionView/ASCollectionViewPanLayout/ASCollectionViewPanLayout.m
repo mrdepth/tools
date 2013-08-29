@@ -175,8 +175,8 @@
 	else if (recognizer.state == UIGestureRecognizerStateChanged) {
 		ASCollectionViewLayoutAttributes* layoutAttributes = [cell.layoutAttributes copy];
 		
-		CGPoint p = [recognizer translationInView:nil];
-		[recognizer setTranslation:CGPointZero inView:nil];
+		CGPoint p = [recognizer translationInView:self.collectionView.superview];
+		[recognizer setTranslation:CGPointZero inView:self.collectionView.superview];
 		
 		CGRect frame = layoutAttributes.frame;
 		frame.origin.x += p.x;

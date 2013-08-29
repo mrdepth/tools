@@ -50,8 +50,8 @@
 }
 
 - (void)setTranslation:(CGPoint)translation inView:(UIView *)view {
-	if (view)
-		translation = [view convertPoint:translation toView:nil];
+//	if (view)
+//		translation = [view convertPoint:translation toView:nil];
 	_firstScreenLocation.x = _lastScreenLocation.x - translation.x;
 	_firstScreenLocation.y = _lastScreenLocation.y - translation.x;
 }
