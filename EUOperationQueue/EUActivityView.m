@@ -139,7 +139,7 @@
 	
 	self.activityNameLabel.backgroundColor = [UIColor clearColor];
 	self.activityNameLabel.opaque = NO;
-	self.activityNameLabel.textAlignment = UITextAlignmentCenter;
+	self.activityNameLabel.textAlignment = NSTextAlignmentCenter;
 	self.activityNameLabel.textColor = [UIColor whiteColor];
 	self.activityNameLabel.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleBottomMargin;
 	[self.contentView addSubview:self.activityNameLabel];
