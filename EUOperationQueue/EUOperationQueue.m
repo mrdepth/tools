@@ -81,7 +81,7 @@ static EUOperationQueue* sharedQueue;
 		if ([NSThread isMainThread])
 			[self.delegate operationQueue:self didUpdateOperation:operation withProgress:progress];
 		else {
-			dispatch_sync(dispatch_get_main_queue(), ^{
+			dispatch_async(dispatch_get_main_queue(), ^{
 				[self.delegate operationQueue:self didUpdateOperation:operation withProgress:progress];
 			});
 		}
