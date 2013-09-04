@@ -442,6 +442,7 @@
 			else if (layoutAttributes.representedElementCategory == ASCollectionElementCategoryDecorationView)
 				view = [self createPreparedDecorationViewForElementOfKind:layoutAttributes.representedElementKind atIndexPath:layoutAttributes.indexPath withLayoutAttributes:layoutAttributes];
 			
+			NSAssert(view, @"View cannot be nil");
 			[self addSubview:view];
 			[view.layer removeAllAnimations];
 			_visibleViews[layoutAttributes.key] = view;
@@ -776,6 +777,9 @@
 					}
 					
 					view = [self createPreparedCellForItemAtIndexPath:updateItem.indexPathAfterUpdate withLayoutAttributes:initialAttributes];
+					
+					NSAssert(view, @"View cannot be nil");
+					NSAssert(initialAppearingAttributes, @"Attributes cannot be nil");
 					[self addSubview:view];
 					_visibleViews[appearingKey] = view;
 					[animations addObject:@{@"view" : view, @"initialAttributes" : initialAppearingAttributes, @"finalAttributes" : finalAppearingAttributes, @"ignoreCurrentState" : @(YES)}];
@@ -893,6 +897,7 @@
 			view = [self createPreparedDecorationViewForElementOfKind:finalAttributes.representedElementKind atIndexPath:finalAttributes.indexPath withLayoutAttributes:initialAttributes];
 		}
 
+		NSAssert(view, @"View cannot be nil");
 		[self addSubview:view];
 		_visibleViews[finalAttributes.key] = view;
 		[animations addObject:@{@"view" : view, @"initialAttributes" : initialAttributes, @"finalAttributes" : finalAttributes, @"ignoreCurrentState" : @(YES)}];

@@ -145,8 +145,6 @@
 		
 		row = [ASCollectionViewFlowLayoutRow new];
 		row.section = self;
-		dimension = _frame.size.width;
-		itemRowIndex = 0;
 		row.frame = CGRectMake(_frame.origin.x, CGRectGetMaxY(_frame), _frame.size.width, 0);
 		[row addItem:placeholderItem];
 
@@ -159,7 +157,6 @@
 		if (hasSplit) {
 			_splitFrame = CGRectMake(_frame.origin.x, CGRectGetMaxY(_frame), _frame.size.width, _splitDimension);
 			_frame = CGRectUnion(_frame, _splitFrame);
-			hasSplit = NO;
 		}
 	}
 	
