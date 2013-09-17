@@ -57,6 +57,9 @@
 
 @property (nonatomic, strong) ASCollectionViewData* collectionViewData;
 
+@property (nonatomic, weak, readonly) UIViewController* viewController;
+@property (nonatomic, assign) UIEdgeInsets boundsInsets;
+
 - (void) setup;
 - (void) updateVisibleCells;
 - (ASCollectionViewCell *)createPreparedCellForItemAtIndexPath:(NSIndexPath *)indexPath withLayoutAttributes:(ASCollectionViewLayoutAttributes *)layoutAttributes;
@@ -385,6 +388,11 @@
 
 #pragma mark - UIScrollViewDelegate
 
+- (void) scrollViewDidScroll:(UIScrollView *)scrollView {
+	if ([self.delegate respondsToSelector:@selector(scrollViewDidScroll:)])
+		[self.delegate scrollViewDidScroll:scrollView];
+}
+
 - (void)scrollViewDidEndScrollingAnimation:(UIScrollView *)scrollView {
 	if (_flags.contentSizeChanging) {
 		self.contentSize = self.collectionViewData.collectionViewContentSize;
@@ -418,10 +426,15 @@
 	self.cellsReuseQueue = [NSMutableDictionary new];
 	self.supplementaryReuseQueue = [NSMutableDictionary new];
 	self.decorationReuseQueue = [NSMutableDictionary new];
+	
+	UIEdgeInsets boundsInsets = UIEdgeInsetsZero;
+	boundsInsets.top = -(self.frame.origin.y + self.contentInset.top);
+	
+	self.boundsInsets = boundsInsets;
 }
 
 - (void)updateVisibleCells {
-	NSArray* visible = [self.collectionViewData layoutAttributesForElementsInRect:self.bounds];
+	NSArray* visible = [self.collectionViewData layoutAttributesForElementsInRect:UIEdgeInsetsInsetRect(self.bounds, self.boundsInsets)];
 	
 	NSMutableSet* visibleKeys = [[NSMutableSet alloc] init];
 	NSMutableSet* invisibleKeys = [[NSMutableSet alloc] initWithArray:_visibleViews.allKeys];
@@ -651,7 +664,7 @@
 	[_visibleViews removeAllObjects];
 	
 	NSMutableDictionary* newlyVisibleLayoutAttributes = [NSMutableDictionary new];
-	for (ASCollectionViewLayoutAttributes* layoutAttributes in [self.collectionViewData layoutAttributesForElementsInRect:self.bounds]) {
+	for (ASCollectionViewLayoutAttributes* layoutAttributes in [self.collectionViewData layoutAttributesForElementsInRect:UIEdgeInsetsInsetRect(self.bounds, self.boundsInsets)]) {
 		newlyVisibleLayoutAttributes[layoutAttributes.key] = layoutAttributes;
 	}
 	NSMutableArray* toReuse = [NSMutableArray new];
@@ -1058,6 +1071,12 @@
 				[self.delegate collectionView:self didDeselectItemAtIndexPath:indexPath];
 		}
 	}
+}
+
+- (UIViewController*) viewController {
+	UIResponder* responder = nil;
+	for (responder = self.nextResponder; responder && ![responder isKindOfClass:[UIViewController class]]; responder = responder.nextResponder);
+	return (UIViewController*) responder;
 }
 
 @end

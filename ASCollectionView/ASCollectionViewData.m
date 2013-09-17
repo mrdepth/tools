@@ -83,7 +83,8 @@
 }
 
 - (CGSize) collectionViewContentSize {
-	return [self.collectionView.collectionViewLayout collectionViewContentSize];
+	CGSize contentSize = [self.collectionView.collectionViewLayout collectionViewContentSize];
+	return contentSize;
 }
 
 #pragma mark - Private

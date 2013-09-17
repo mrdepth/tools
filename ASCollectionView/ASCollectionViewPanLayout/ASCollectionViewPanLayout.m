@@ -73,6 +73,7 @@
 
 - (id) init {
 	if (self = [super init]) {
+		self.allowsMultiplePan = YES;
 	}
 	return self;
 }
@@ -403,7 +404,7 @@
 			[self canPutItemsToIndexPath:indexPath]) {
 			
 			if (![indexPath isEqual:self.expandedIndexPath])
-				[self performSelector:@selector(expandCellAtIndexPath:) withObject:indexPath afterDelay:0.5];
+				[self performSelector:@selector(expandCellAtIndexPath:) withObject:indexPath afterDelay:0.15];
 		}
 		else {
 
