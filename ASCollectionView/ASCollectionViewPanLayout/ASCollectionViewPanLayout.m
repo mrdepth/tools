@@ -20,6 +20,8 @@
 @interface ASCollectionView()
 @property (nonatomic, strong) NSMutableDictionary* visibleViews;
 @property (nonatomic, strong) ASCollectionViewData* collectionViewData;
+@property (nonatomic, strong) NSMutableDictionary* indexesOldToNewMap;
+@property (nonatomic, strong) NSMutableDictionary* indexesNewToOldMap;
 
 @end
 
@@ -134,6 +136,51 @@
 		return [super initialLayoutAttributesForAppearingItemAtIndexPath:itemIndexPath];
 }
 
+- (void)prepareForCollectionViewUpdates:(NSArray *)updateItems {
+/*	if (self.placeholderIndexPath) {
+		NSMutableIndexSet* insertIndexSet = [NSMutableIndexSet new];
+		NSMutableIndexSet* deleteIndexSet = [NSMutableIndexSet new];
+		for (ASCollectionViewUpdateItem* updateItem in updateItems) {
+			if (updateItem.indexPathBeforeUpdate && updateItem.indexPathBeforeUpdate.section == self.placeholderIndexPath.section)
+				[deleteIndexSet addIndex:updateItem.indexPathBeforeUpdate.item];
+			else if (updateItem.indexPathAfterUpdate && updateItem.indexPathAfterUpdate.section == self.placeholderIndexPath.section)
+				[insertIndexSet addIndex:updateItem.indexPathAfterUpdate.item];
+		}
+		__block NSInteger index = self.placeholderIndexPath.item;
+		index -= [deleteIndexSet countOfIndexesInRange:NSMakeRange(0, index)];
+		[insertIndexSet enumerateIndexesUsingBlock:^(NSUInteger idx, BOOL *stop) {
+			if (idx <= index)
+				index++;
+			else
+				*stop = YES;
+		}];
+
+		self.placeholderIndexPath = [NSIndexPath indexPathForItem:index inSection:self.placeholderIndexPath.section];
+		NSLog(@"%d %@", updateItems.count, self.placeholderIndexPath);
+//		NSIndexPath* placeholderIndexPath = self.collectionView.indexesOldToNewMap[self.placeholderIndexPath];
+//		if (placeholderIndexPath)
+//			self.placeholderIndexPath = placeholderIndexPath;
+	}*/
+	if (self.panIndexPaths) {
+		NSMutableArray* panIndexPaths = [NSMutableArray new];
+		for (NSIndexPath* indexPath in self.panIndexPaths)
+			[panIndexPaths addObject:self.collectionView.indexesOldToNewMap[indexPath]];
+		self.panIndexPaths = panIndexPaths;
+	}
+	if (self.expandedIndexPath)
+		self.expandedIndexPath = self.collectionView.indexesOldToNewMap[self.expandedIndexPath];
+
+	if (self.placeholderAvailableIndexPaths) {
+		self.placeholderAvailableIndexPaths = [NSMutableArray new];
+		self.placeholderUnavailableIndexPaths = [NSMutableArray new];
+		self.putAvailableIndexPaths = [NSMutableArray new];
+		self.putUnavailableIndexPaths = [NSMutableArray new];
+	}
+	if (self.panCell)
+		self.panCell.layoutAttributes.indexPath = self.collectionView.indexesOldToNewMap[self.panCell.layoutAttributes.indexPath];
+	[super prepareForCollectionViewUpdates:updateItems];
+}
+
 #pragma mark - ASCollectionViewDataSource
 
 - (ASCollectionViewCell *)collectionView:(ASCollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath {
@@ -235,10 +282,6 @@
 		self.panIndexPaths = indexPaths;
 		
 		NSInteger placeholderIndex = panIndexPath.item;
-/*		for (NSIndexPath* indexPath in [indexPaths reverseObjectEnumerator]) {
-			if (indexPath.section == panIndexPath.section && indexPath.item < panIndexPath.item)
-				placeholderIndex--;
-		}*/
 		self.placeholderIndexPath = [NSIndexPath indexPathForItem:placeholderIndex inSection:panIndexPath.section];
 		
 		[self.collectionView.visibleViews removeObjectForKey:cell.layoutAttributes.key];
@@ -260,12 +303,13 @@
 		
 		[self.collectionView performBatchUpdates:^{
 		} completion:^(BOOL finished) {
-			//self.finalLayoutAttributes = nil;
 		}];
 		
 		[UIView animateWithDuration:ASCollectionViewAnimationDuration animations:^{
 			[cell applyLayoutAttributes:layoutAttributes];
 		}];
+		if ([self.collectionView.delegate respondsToSelector:@selector(collectionView:didStartPanWithItemsAtIndexPaths:)])
+			[(id<ASCollectionViewDelegatePanLayout>) self.collectionView.delegate collectionView:self.collectionView didStartPanWithItemsAtIndexPaths:indexPaths];
 	}
 }
 
@@ -369,6 +413,9 @@
 	self.putUnavailableIndexPaths = nil;
 	
 	self.finalLayoutAttributes = nil;
+	
+	if ([self.collectionView.delegate respondsToSelector:@selector(collectionViewDidFinishPan:)])
+		[(id<ASCollectionViewDelegatePanLayout>) self.collectionView.delegate collectionViewDidFinishPan:self.collectionView];
 }
 
 - (void) onPan {
@@ -473,6 +520,7 @@
 
 - (BOOL) canMoveItemsToIndexPath:(NSIndexPath*) indexPath {
 	BOOL canMove = NO;
+	
 	if (![self.placeholderUnavailableIndexPaths containsObject:indexPath]) {
 		if ([self.placeholderAvailableIndexPaths containsObject:indexPath])
 			canMove = YES;
@@ -481,8 +529,9 @@
 			NSInteger itemIndex = indexPath.item;
 			NSInteger sectionIndex = indexPath.section;
 			int n = self.panIndexPaths.count;
-			for (int i = 0; i < n; i++, itemIndex++)
+			for (int i = 0; i < n; i++, itemIndex++) {
 				[destination addObject:[NSIndexPath indexPathForItem:itemIndex inSection:sectionIndex]];
+			}
 			if ([(id<ASCollectionViewDelegatePanLayout>) self.collectionView.delegate collectionView:self.collectionView canMoveItemsAtIndexPaths:self.panIndexPaths toIndexPaths:destination]) {
 				[self.placeholderAvailableIndexPaths addObject:indexPath];
 				canMove = YES;

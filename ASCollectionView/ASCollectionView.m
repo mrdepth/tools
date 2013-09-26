@@ -735,8 +735,8 @@
 					[toReuse addObject:view];
 					[visibleViews removeObjectForKey:key];
 				}
-				[_indexPathsForSelectedItems removeObject:updateItem.indexPathBeforeUpdate];
-				[_indexPathsForHighlightedItems removeObject:updateItem.indexPathBeforeUpdate];
+				//[_indexPathsForSelectedItems removeObject:updateItem.indexPathBeforeUpdate];
+				//[_indexPathsForHighlightedItems removeObject:updateItem.indexPathBeforeUpdate];
 			}
 			else if (updateItem.updateAction == ASCollectionUpdateActionInsert) {
 				id key = [ASCollectionViewLayoutAttributes keyForItemAtIndexPath:updateItem.indexPathAfterUpdate];

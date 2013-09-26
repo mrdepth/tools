@@ -18,6 +18,9 @@
 - (void)collectionView:(ASCollectionView *)collectionView didMoveItemsAtIndexPaths:(NSArray*) indexPaths toIndexPaths:(NSArray*) destination;
 - (void)collectionView:(ASCollectionView *)collectionView didPutItemsAtIndexPaths:(NSArray*) indexPaths toItemAtIndexPath:(NSIndexPath*) indexPath;
 
+- (void)collectionView:(ASCollectionView *)collectionView didStartPanWithItemsAtIndexPaths:(NSArray*) indexPaths;
+- (void)collectionViewDidFinishPan:(ASCollectionView *)collectionView;
+
 @end
 
 @interface ASCollectionViewPanLayout : ASCollectionViewFlowLayout
