@@ -502,6 +502,8 @@
 		self.autoscrollSpeed = 0;
 	}
 	self.collectionView.bounds = bounds;
+	if ([self.collectionView.delegate respondsToSelector:@selector(scrollViewDidScroll:)])
+		[self.collectionView.delegate scrollViewDidScroll:self.collectionView];
 	[self onPan];
 }
 
