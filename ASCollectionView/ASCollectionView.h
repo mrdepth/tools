@@ -11,7 +11,7 @@
 #import "ASCollectionViewCell.h"
 #import "ASCollectionViewUpdateItem.h"
 
-#define ASCollectionViewAnimationDuration 0.5
+#define ASCollectionViewAnimationDuration 0.25
 #define ASCollectionViewSelectionAnimationDuration 0.25
 
 @interface NSIndexPath (ASCollectionView)
