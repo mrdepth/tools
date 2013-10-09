@@ -39,6 +39,7 @@
 		self.layer.transform = layoutAttributes.transform3D;
 		self.alpha = layoutAttributes.alpha;
 		self.layer.zPosition = layoutAttributes.zIndex;
+		[self setNeedsLayout];
 	}
 }
 
