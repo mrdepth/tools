@@ -137,30 +137,6 @@
 }
 
 - (void)prepareForCollectionViewUpdates:(NSArray *)updateItems {
-/*	if (self.placeholderIndexPath) {
-		NSMutableIndexSet* insertIndexSet = [NSMutableIndexSet new];
-		NSMutableIndexSet* deleteIndexSet = [NSMutableIndexSet new];
-		for (ASCollectionViewUpdateItem* updateItem in updateItems) {
-			if (updateItem.indexPathBeforeUpdate && updateItem.indexPathBeforeUpdate.section == self.placeholderIndexPath.section)
-				[deleteIndexSet addIndex:updateItem.indexPathBeforeUpdate.item];
-			else if (updateItem.indexPathAfterUpdate && updateItem.indexPathAfterUpdate.section == self.placeholderIndexPath.section)
-				[insertIndexSet addIndex:updateItem.indexPathAfterUpdate.item];
-		}
-		__block NSInteger index = self.placeholderIndexPath.item;
-		index -= [deleteIndexSet countOfIndexesInRange:NSMakeRange(0, index)];
-		[insertIndexSet enumerateIndexesUsingBlock:^(NSUInteger idx, BOOL *stop) {
-			if (idx <= index)
-				index++;
-			else
-				*stop = YES;
-		}];
-
-		self.placeholderIndexPath = [NSIndexPath indexPathForItem:index inSection:self.placeholderIndexPath.section];
-		NSLog(@"%d %@", updateItems.count, self.placeholderIndexPath);
-//		NSIndexPath* placeholderIndexPath = self.collectionView.indexesOldToNewMap[self.placeholderIndexPath];
-//		if (placeholderIndexPath)
-//			self.placeholderIndexPath = placeholderIndexPath;
-	}*/
 	if (self.panIndexPaths) {
 		NSMutableArray* panIndexPaths = [NSMutableArray new];
 		for (NSIndexPath* indexPath in self.panIndexPaths)
@@ -188,6 +164,7 @@
 	
 	if (!cell.longPressPanGestureRecognizer) {
 		cell.longPressPanGestureRecognizer = [[ASLongPressPanGestureRecognizer alloc] initWithTarget:self action:@selector(onLongPress:)];
+		cell.longPressPanGestureRecognizer.minimumPressDuration = 0.25;
 		[cell addGestureRecognizer:cell.longPressPanGestureRecognizer];
 	}
 	return cell;
@@ -439,7 +416,7 @@
 						 } completion:nil];
 	};
 
-	if (indexPath) {// && ![self.placeholderIndexPath isEqual:indexPath]) {
+	if (indexPath) {
 		ASCollectionViewCell* cell = [self.collectionView cellForItemAtIndexPath:indexPath];
 		CGPoint p = [self.panCell.longPressPanGestureRecognizer locationInView:cell];
 		CGPoint center = CGPointMake(cell.frame.size.width / 2, cell.frame.size.height / 2);
