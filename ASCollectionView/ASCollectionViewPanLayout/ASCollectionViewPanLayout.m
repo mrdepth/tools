@@ -195,7 +195,8 @@
 - (void) onLongPress:(ASLongPressPanGestureRecognizer*) recognizer {
 	ASCollectionViewCell* cell = (ASCollectionViewCell*) recognizer.view;
 	if (recognizer.state == UIGestureRecognizerStateBegan) {
-		[self beginPanWithCell:cell];
+		if (!self.panCell)
+			[self beginPanWithCell:cell];
 	}
 	else if (recognizer.state == UIGestureRecognizerStateChanged) {
 		ASCollectionViewLayoutAttributes* layoutAttributes = [cell.layoutAttributes copy];
