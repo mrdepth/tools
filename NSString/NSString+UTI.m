@@ -7,6 +7,7 @@
 //
 
 #import "NSString+UTI.h"
+#import <MobileCoreServices/MobileCoreServices.h>
 
 @implementation NSString (UTI)
 
