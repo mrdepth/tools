@@ -16,7 +16,7 @@
 
 @implementation ASInAppPurchase
 
-+ (id) inAppPurchaseWithProductID:(NSString*) productID {
++ (instancetype) inAppPurchaseWithProductID:(NSString*) productID {
 	return [[ASInAppPurchase alloc] initWithProductID:productID];
 }
 

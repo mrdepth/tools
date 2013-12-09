@@ -12,7 +12,7 @@
 @property (nonatomic, copy, readonly) NSString* productID;
 @property (nonatomic, assign) BOOL purchased;
 
-+ (id) inAppPurchaseWithProductID:(NSString*) productID;
++ (instancetype) inAppPurchaseWithProductID:(NSString*) productID;
 - (id) initWithProductID:(NSString*) productID;
 
 @end
