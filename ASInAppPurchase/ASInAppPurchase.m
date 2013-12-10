@@ -56,12 +56,11 @@
 	int32_t v = _purchased;
 	NSData* data = [NSData dataWithBytes:&v length:sizeof(int32_t)];
 	
-	OSStatus status;
 	if (self.query) {
 		if (_purchased)
-			status = SecItemUpdate((__bridge CFDictionaryRef) self.query, (__bridge CFDictionaryRef) @{(__bridge id) kSecValueData: data});
+			SecItemUpdate((__bridge CFDictionaryRef) self.query, (__bridge CFDictionaryRef) @{(__bridge id) kSecValueData: data});
 		else
-			status = SecItemDelete((__bridge CFDictionaryRef) self.query);
+			SecItemDelete((__bridge CFDictionaryRef) self.query);
 	}
 	else {
 		NSDictionary* attr = @{(__bridge id) kSecAttrService: self.productID,
@@ -70,7 +69,7 @@
 							   (__bridge id) kSecReturnAttributes: (__bridge id) kCFBooleanTrue};
 
 		CFTypeRef dicRef = nil;
-		status = SecItemAdd((__bridge CFDictionaryRef)attr, &dicRef);
+		SecItemAdd((__bridge CFDictionaryRef)attr, &dicRef);
 		if (dicRef) {
 			NSMutableDictionary* query = [[NSMutableDictionary alloc] initWithDictionary:(__bridge NSDictionary*) dicRef];
 			query[(__bridge id) kSecClass] = (__bridge id) kSecClassGenericPassword;
