@@ -27,7 +27,7 @@
 }
 
 - (NSString*) daysAgoStringWithTime:(BOOL) printTime {
-	int days = [self daysAgo];
+	NSInteger days = [self daysAgo];
 	NSString* timeString = nil;
 	if (printTime) {
 		static NSDateFormatter* dateFormatter = nil;

@@ -11,7 +11,7 @@
 @implementation LUISegmentedControl
 
 - (void) awakeFromNib {
-	int n = self.numberOfSegments;
+	NSUInteger n = self.numberOfSegments;
 	for (int i = 0; i < n; i++) {
 		NSString* title = [self titleForSegmentAtIndex:i];
 		if (title.length > 0)

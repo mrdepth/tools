@@ -33,7 +33,7 @@
 	NSUInteger rgba = 0;
 	
 	if (componentsCount == 4) {
-		const float *components = CGColorGetComponents(colorRef);
+		const CGFloat *components = CGColorGetComponents(colorRef);
 		rgba = 0;
 		for (int i = 0; i < 4; i++) {
 			rgba <<= 8;

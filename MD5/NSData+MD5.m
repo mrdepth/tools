@@ -15,7 +15,7 @@
 - (NSString*) md5 {
 	const void *bytes = [self bytes];
 	unsigned char result[16];
-	CC_MD5(bytes, [self length], result);
+	CC_MD5(bytes, (CC_LONG) [self length], result);
 	return [NSString stringWithFormat:
 			@"%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X",
 			result[0], result[1], result[2], result[3], 
