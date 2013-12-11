@@ -44,6 +44,7 @@
 			
 			[query removeObjectForKey:(__bridge id) kSecReturnData];
 			self.query = query;
+			CFRelease(dicRef);
 		}
 		else
 			_purchased = NO;
@@ -75,6 +76,7 @@
 			query[(__bridge id) kSecClass] = (__bridge id) kSecClassGenericPassword;
 			[query removeObjectForKey:(__bridge id) kSecReturnData];
 			self.query = query;
+			CFRelease(dicRef);
 		}
 	}
 }
