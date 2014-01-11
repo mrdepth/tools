@@ -37,6 +37,9 @@
 - (void) onTap:(UITapGestureRecognizer*) recognizer;
 @end
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wprotocol"
+
 @implementation CollapsableTableView
 @synthesize delegate;
 @synthesize dataSource;
@@ -317,3 +320,5 @@
 }
 
 @end
+
+#pragma clang diagnostic pop
