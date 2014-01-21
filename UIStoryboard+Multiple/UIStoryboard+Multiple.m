@@ -26,12 +26,12 @@
 
 + (void) load {
 	Method m1 = class_getInstanceMethod(self, @selector(instantiateViewControllerWithIdentifier:));
-	Method m2 = class_getInstanceMethod(self, @selector(neocomInstantiateViewControllerWithIdentifier:));
+	Method m2 = class_getInstanceMethod(self, @selector(multipleInstantiateViewControllerWithIdentifier:));
 	method_exchangeImplementations(m1, m2);
 }
 
-- (id)neocomInstantiateViewControllerWithIdentifier:(NSString *)identifier {
-	id viewController = [self neocomInstantiateViewControllerWithIdentifier:identifier];
+- (id)multipleInstantiateViewControllerWithIdentifier:(NSString *)identifier {
+	id viewController = [self multipleInstantiateViewControllerWithIdentifier:identifier];
 	NSString* storyboardName = [viewController storyboardName];
 	if (storyboardName)
 		viewController = [[UIStoryboard storyboardWithName:storyboardName bundle:nil] instantiateViewControllerWithIdentifier:identifier];
