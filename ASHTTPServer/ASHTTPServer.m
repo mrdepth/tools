@@ -41,58 +41,14 @@
 	return self;
 }
 
+- (void) dealloc {
+	[self stop];
+}
+
 - (BOOL) startWithError:(NSError**) errorPtr {
-	{
-		/*self.lastError = nil;
-		self.state = SERVER_STATE_STARTING;
-		
-		socket = CFSocketCreate(kCFAllocatorDefault, PF_INET, SOCK_STREAM,
-								IPPROTO_TCP, 0, NULL, NULL);
-		if (!socket)
-		{
-			[self errorWithName:@"Unable to create socket."];
-			return;
-		}
-		
-		int reuse = true;
-		int fileDescriptor = CFSocketGetNative(socket);
-		if (setsockopt(fileDescriptor, SOL_SOCKET, SO_REUSEADDR,
-					   (void *)&reuse, sizeof(int)) != 0)
-		{
-			[self errorWithName:@"Unable to set socket options."];
-			return;
-		}
-		
-		struct sockaddr_in address;
-		memset(&address, 0, sizeof(address));
-		address.sin_len = sizeof(address);
-		address.sin_family = AF_INET;
-		address.sin_addr.s_addr = htonl(INADDR_ANY);
-		address.sin_port = htons(HTTP_SERVER_PORT);
-		CFDataRef addressData =
-		CFDataCreate(NULL, (const UInt8 *)&address, sizeof(address));
-		[(id)addressData autorelease];
-		
-		if (CFSocketSetAddress(socket, addressData) != kCFSocketSuccess)
-		{
-			[self errorWithName:@"Unable to bind socket to address."];
-			return;
-		}
-		
-		listeningHandle = [[NSFileHandle alloc]
-						   initWithFileDescriptor:fileDescriptor
-						   closeOnDealloc:YES];
-		
-		[[NSNotificationCenter defaultCenter]
-		 addObserver:self
-		 selector:@selector(receiveIncomingConnectionNotification:)
-		 name:NSFileHandleConnectionAcceptedNotification
-		 object:nil];
-		[listeningHandle acceptConnectionInBackgroundAndNotify];
-		
-		self.state = SERVER_STATE_RUNNING;*/
+	if (self.state == ASHTTPServerStateRunning)
+		return YES;
 	
-	}
 	self.state = ASHTTPServerStateStarting;
 	uint16_t chosenPort = 0;
 	struct sockaddr_in serverAddress;
@@ -173,6 +129,9 @@
 }
 
 - (void) stop {
+	if (self.state == ASHTTPServerStateOffline)
+		return;
+	
 	self.state = ASHTTPServerStateStopping;
 
 	[self.netService stop];
@@ -183,8 +142,10 @@
 	[self.listeningFileHandle closeFile];
 	self.listeningFileHandle = nil;
 	
-	for (NSFileHandle* fileHandle in [self.requests allKeys])
+	for (NSValue* value in [self.requests allKeys]){
+		NSFileHandle* fileHandle = [value nonretainedObjectValue];
 		[self stopReceivingForFileHandle:fileHandle close:YES];
+	}
 	
 	if (_ipv4socket)
 		CFRelease(_ipv4socket);
@@ -230,7 +191,7 @@
 	
     if(incomingFileHandle)
 	{
-		self.requests[@(incomingFileHandle.hash)] = (__bridge_transfer id) CFHTTPMessageCreateEmpty(kCFAllocatorDefault, TRUE);
+		self.requests[[NSValue valueWithNonretainedObject:incomingFileHandle]] = (__bridge_transfer id) CFHTTPMessageCreateEmpty(kCFAllocatorDefault, TRUE);
 		
 		[[NSNotificationCenter defaultCenter] addObserver:self
 												 selector:@selector(didReceiveData:)
@@ -253,7 +214,7 @@
 		return;
 	}
 	
-	CFHTTPMessageRef incomingRequest = (__bridge CFHTTPMessageRef) self.requests[@(incomingFileHandle.hash)];
+	CFHTTPMessageRef incomingRequest = (__bridge CFHTTPMessageRef) self.requests[[NSValue valueWithNonretainedObject:incomingFileHandle]];
 	
 	if (!incomingRequest) {
 		[self stopReceivingForFileHandle:incomingFileHandle close:YES];
@@ -270,7 +231,7 @@
 		NSInteger contentLength = [(__bridge_transfer NSString*) CFHTTPMessageCopyHeaderFieldValue(incomingRequest, CFSTR("Content-Length")) integerValue];
 		if (contentLength > 0) {
 			NSData* body = (__bridge_transfer NSData*) CFHTTPMessageCopyBody(incomingRequest);
-			if (body.length > contentLength) {
+			if (body.length >= contentLength) {
 				NSMutableURLRequest* request = [[NSMutableURLRequest alloc] initWithHTTPMessage:incomingRequest];
 				[self stopReceivingForFileHandle:incomingFileHandle close:NO];
 				objc_setAssociatedObject(request, @"fileHandle", incomingFileHandle, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
@@ -295,7 +256,7 @@
 		[fileHandle closeFile];
 	
 	[[NSNotificationCenter defaultCenter] removeObserver:self name:NSFileHandleDataAvailableNotification object:fileHandle];
-	[self.requests removeObjectForKey:@(fileHandle.hash)];
+	[self.requests removeObjectForKey:[NSValue valueWithNonretainedObject:fileHandle]];
 }
 
 @end

@@ -11,6 +11,8 @@
 #import <netinet/in.h>
 #import "NSHTTPURLResponse+ASHTTPServer.h"
 #import "NSMutableURLRequest+ASHTTPServer.h"
+#import "NSURLRequest+ASHTTPServer.h"
+#import "NSString+ASHTTPServer.h"
 
 #define ASHTTPServerErrorDomain @"EUHTTPServerErrorDomain"
 
