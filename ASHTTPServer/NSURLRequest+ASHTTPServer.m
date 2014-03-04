@@ -38,34 +38,54 @@
 			
 			
 			if (boundary) {
-				NSString* endMark = [NSString stringWithFormat:@"\r\n--%@--", boundary];
-				NSString* delimiter = [NSString stringWithFormat:@"\r\n--%@", boundary];
-				NSMutableString* body = [[NSMutableString alloc] initWithData:self.HTTPBody encoding:NSUTF8StringEncoding];
-				NSRange range = [body rangeOfString:endMark];
+				NSData* endMark = [[NSString stringWithFormat:@"\r\n--%@--", boundary] dataUsingEncoding:NSUTF8StringEncoding];
+				NSData* delimiter = [[NSString stringWithFormat:@"--%@\r\n", boundary] dataUsingEncoding:NSUTF8StringEncoding];
+				NSData* crlf = [@"\r\n\r\n" dataUsingEncoding:NSUTF8StringEncoding];
+				
+				NSMutableData* body = [self.HTTPBody mutableCopy];
+				
+				NSRange range = [body rangeOfData:endMark options:NSDataSearchBackwards range:NSMakeRange(0, body.length)];
+				NSUInteger length = body.length;
 				if (range.location != NSNotFound) {
-					range.length = body.length - range.location;
-					[body replaceCharactersInRange:range withString:@""];
+					range.length = length = range.location;
+					range.location = 0;
 				}
 				
-				NSArray* parts = [body componentsSeparatedByString:delimiter];
-				
-				for (NSString* part in parts) {
-					range = [part rangeOfString:@"\r\n\r\n"];
-					if (range.location != NSNotFound) {
-						NSString* headersString = [part substringToIndex:range.location];
-						NSString* value = [part substringFromIndex:range.location + range.length];
+				while (range.length > 0) {
+					NSRange delimiterRange = [body rangeOfData:delimiter options:0 range:range];
+					NSRange dataRange = range;
+					if (delimiterRange.location != NSNotFound)
+						dataRange.length = delimiterRange.location - range.location;
+					NSRange crlfRange = [body rangeOfData:crlf options:0 range:dataRange];
+					if (crlfRange.location != NSNotFound) {
+						NSRange headerRange = NSMakeRange(dataRange.location, crlfRange.location - dataRange.location);
+						NSRange valueRange;
+						valueRange.location = crlfRange.location + crlfRange.length;
+						valueRange.length = dataRange.location + dataRange.length - valueRange.location;
+
+						NSString* headersString = [[NSString alloc] initWithData:[body subdataWithRange:headerRange] encoding:NSUTF8StringEncoding];
 						NSDictionary* headers = [headersString httpHeaders];
 						NSString* contentDisposition = headers[@"Content-Disposition"];
 						NSDictionary* valueFields = [contentDisposition httpHeaderValueFields];
 						NSString* name = valueFields[@"name"];
 						NSString* fileName = valueFields[@"filename"];
-						if (name && value) {
+						if (name) {
 							if (fileName)
-								dic[name] = @{@"fileName": fileName, @"value": value};
-							else
-								dic[name] = value;
+								dic[name] = @{@"fileName": fileName, @"value": [body subdataWithRange:valueRange]};
+							else {
+								NSString* value = [[NSString alloc] initWithData:[body subdataWithRange:valueRange] encoding:NSUTF8StringEncoding];
+								if (value)
+									dic[name] = value;
+							}
 						}
+
+						
 					}
+					if (delimiterRange.location != NSNotFound)
+						range.location = delimiterRange.location + delimiterRange.length;
+					else
+						range.location = dataRange.location + dataRange.length;
+					range.length = length - range.location;
 				}
 			}
 		}
