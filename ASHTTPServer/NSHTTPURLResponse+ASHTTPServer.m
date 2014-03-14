@@ -14,7 +14,7 @@
 -(id)initWithURL:(NSURL*) url statusCode:(NSInteger) statusCode bodyData:(NSData*) bodyData headerFields:(NSDictionary*) headerFields {
 	if (!headerFields[@"Content-Length"]) {
 		NSMutableDictionary* mutableHeaderFields = [[NSMutableDictionary alloc] initWithDictionary:headerFields];
-		mutableHeaderFields[@"Content-Length"] = [NSString stringWithFormat:@"%d", bodyData.length];
+		mutableHeaderFields[@"Content-Length"] = [NSString stringWithFormat:@"%lud",(unsigned long) bodyData.length];
 		headerFields = mutableHeaderFields;
 	}
 

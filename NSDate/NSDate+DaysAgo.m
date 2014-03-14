@@ -23,11 +23,11 @@
 	else if (days == 1)
 		return NSLocalizedString(@"Yesterday", @"Yesterday");
 	else
-		return [NSString stringWithFormat:NSLocalizedString(@"%d days ago", @"%d days ago"), days];
+		return [NSString stringWithFormat:NSLocalizedString(@"%d days ago", nil), (int32_t) days];
 }
 
 - (NSString*) daysAgoStringWithTime:(BOOL) printTime {
-	NSInteger days = [self daysAgo];
+	int32_t days = (int32_t) [self daysAgo];
 	NSString* timeString = nil;
 	if (printTime) {
 		static NSDateFormatter* dateFormatter = nil;
@@ -46,7 +46,7 @@
 	else if (days == 1)
 		s = NSLocalizedString(@"Yesterday", @"Yesterday");
 	else
-		s = [NSString stringWithFormat:NSLocalizedString(@"%d days ago", @"%d days ago"), days];
+		s = [NSString stringWithFormat:NSLocalizedString(@"%d days ago", nil), days];
 	
 	if (timeString)
 		return [NSString stringWithFormat:NSLocalizedString(@"%@ at %@", nil), s, timeString];
