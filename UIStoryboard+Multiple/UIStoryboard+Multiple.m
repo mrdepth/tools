@@ -10,6 +10,7 @@
 
 #import <objc/runtime.h>
 
+
 @implementation UIViewController(Multiple)
 
 - (NSString*) storyboardName {
@@ -18,6 +19,14 @@
 
 - (void) setStoryboardName:(NSString *)storyboardName {
 	objc_setAssociatedObject(self, @"storyboardName", storyboardName, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+}
+
+- (NSString*) storyboardIdentifier {
+	return objc_getAssociatedObject(self, @"storyboardIdentifier");
+}
+
+- (void) setStoryboardIdentifier:(NSString *)storyboardIdentifier {
+	objc_setAssociatedObject(self, @"storyboardIdentifier", storyboardIdentifier, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 }
 
 @end
@@ -33,8 +42,23 @@
 - (id)multipleInstantiateViewControllerWithIdentifier:(NSString *)identifier {
 	id viewController = [self multipleInstantiateViewControllerWithIdentifier:identifier];
 	NSString* storyboardName = [viewController storyboardName];
-	if (storyboardName)
-		viewController = [[UIStoryboard storyboardWithName:storyboardName bundle:nil] instantiateViewControllerWithIdentifier:identifier];
+	if (storyboardName) {
+		if ([viewController storyboardIdentifier])
+			viewController = [[UIStoryboard storyboardWithName:storyboardName bundle:nil] instantiateViewControllerWithIdentifier:[viewController storyboardIdentifier]];
+		else
+			viewController = [[UIStoryboard storyboardWithName:storyboardName bundle:nil] instantiateViewControllerWithIdentifier:identifier];
+	}
+	if ([viewController isKindOfClass:[UINavigationController class]]) {
+		UINavigationController* navigationController = viewController;
+		if (navigationController.viewControllers.count == 1) {
+			UIViewController* viewController = navigationController.viewControllers[0];
+			NSString* storyboardName = [viewController storyboardName];
+			if (storyboardName) {
+				viewController = [[UIStoryboard storyboardWithName:storyboardName bundle:nil] instantiateViewControllerWithIdentifier:[viewController storyboardIdentifier]];
+				[navigationController setViewControllers:@[viewController] animated:NO];
+			}
+		}
+	}
 	return viewController;
 }
 
