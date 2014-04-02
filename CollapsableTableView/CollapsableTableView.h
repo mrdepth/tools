@@ -28,6 +28,8 @@
 @property (nonatomic, weak) id<CollapsableTableViewDelegate> delegate;
 @property (nonatomic, weak) id<UITableViewDataSource> dataSource;
 
-- (void) handleShake;
+//- (void) handleShake;
+- (void) collapsAll;
+- (void) expandAll;
 
 @end
