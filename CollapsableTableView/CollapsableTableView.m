@@ -172,10 +172,10 @@
 
 - (NSMutableArray*) sections {
 	if (!_sections) {
-		NSInteger numberOfSections = [self numberOfSections];
-		self.sections = [NSMutableArray arrayWithCapacity:numberOfSections];
+		NSInteger numberOfSections = [self.dataSource numberOfSectionsInTableView:self];
+		_sections = [NSMutableArray arrayWithCapacity:numberOfSections];
 		for (NSInteger section = 0; section < numberOfSections; section++)
-			[self.sections addObject:[NSNull null]];
+			[_sections addObject:[NSNull null]];
 	}
 	return _sections;
 }
