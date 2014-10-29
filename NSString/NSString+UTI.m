@@ -87,7 +87,7 @@
 			return nil;
 		}
 	}
-	return NO;
+	return nil;
 }
 
 @end
