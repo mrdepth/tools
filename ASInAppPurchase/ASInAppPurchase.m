@@ -32,22 +32,26 @@
 
 		CFTypeRef dicRef = nil;
 
-		SecItemCopyMatching((__bridge CFDictionaryRef) query, &dicRef);
-		if (dicRef) {
-			NSMutableDictionary* query = [[NSMutableDictionary alloc] initWithDictionary:(__bridge NSDictionary*) dicRef];
-			query[(__bridge id) kSecClass] = (__bridge id) kSecClassGenericPassword;
-
-			NSData* data = query[(__bridge id) kSecValueData];
-
-			const int32_t *v = (int32_t*) [data bytes];
-			_purchased = *v;
-			
-			[query removeObjectForKey:(__bridge id) kSecReturnData];
-			self.query = query;
-			CFRelease(dicRef);
+		OSStatus status = SecItemCopyMatching((__bridge CFDictionaryRef) query, &dicRef);
+		if (status == errSecSuccess || status == errSecItemNotFound) {
+			if (dicRef) {
+				NSMutableDictionary* query = [[NSMutableDictionary alloc] initWithDictionary:(__bridge NSDictionary*) dicRef];
+				query[(__bridge id) kSecClass] = (__bridge id) kSecClassGenericPassword;
+				
+				NSData* data = query[(__bridge id) kSecValueData];
+				
+				const int32_t *v = (int32_t*) [data bytes];
+				_purchased = *v;
+				
+				[query removeObjectForKey:(__bridge id) kSecReturnData];
+				self.query = query;
+				CFRelease(dicRef);
+			}
+			else
+				_purchased = NO;
 		}
 		else
-			_purchased = NO;
+			return nil;
 	}
 	return self;
 }
