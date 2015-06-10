@@ -10,7 +10,7 @@
 
 @interface UIViewController(Multiple)
 @property (nonatomic, strong) NSString* storyboardName;
-@property (nonatomic, strong) NSString* storyboardIdentifier;
+@property (nonatomic, readonly) NSString* storyboardIdentifier;
 @end
 
 @interface UIStoryboard (Multiple)

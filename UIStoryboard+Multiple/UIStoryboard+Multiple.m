@@ -10,8 +10,8 @@
 
 #import <objc/runtime.h>
 
-
 @implementation UIViewController(Multiple)
+@dynamic storyboardIdentifier;
 
 - (NSString*) storyboardName {
 	return objc_getAssociatedObject(self, @"storyboardName");
@@ -19,14 +19,6 @@
 
 - (void) setStoryboardName:(NSString *)storyboardName {
 	objc_setAssociatedObject(self, @"storyboardName", storyboardName, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-}
-
-- (NSString*) storyboardIdentifier {
-	return objc_getAssociatedObject(self, @"storyboardIdentifier");
-}
-
-- (void) setStoryboardIdentifier:(NSString *)storyboardIdentifier {
-	objc_setAssociatedObject(self, @"storyboardIdentifier", storyboardIdentifier, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 }
 
 @end
