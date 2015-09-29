@@ -33,7 +33,7 @@
 		static NSDateFormatter* dateFormatter = nil;
 		if (!dateFormatter) {
 			dateFormatter = [NSDateFormatter new];
-			[dateFormatter setLocale:[[NSLocale alloc] initWithLocaleIdentifier:@"en_GB"]];
+			[dateFormatter setLocale:[[NSLocale alloc] initWithLocaleIdentifier:@"en_US_POSIX"]];
 			//[dateFormatter setTimeZone:[NSTimeZone timeZoneForSecondsFromGMT:0]];
 			[dateFormatter setDateFormat:@"HH:mm:ss"];
 		}
