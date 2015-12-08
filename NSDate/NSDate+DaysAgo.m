@@ -12,9 +12,9 @@
 
 - (NSInteger) daysAgo {
 	NSCalendar* calendar = [NSCalendar currentCalendar];
-	NSDateComponents* components = [calendar components:NSYearCalendarUnit | NSMonthCalendarUnit |  NSDayCalendarUnit | NSTimeZoneCalendarUnit fromDate:self];
+	NSDateComponents* components = [calendar components:NSCalendarUnitYear | NSCalendarUnitMonth |  NSCalendarUnitDay | NSCalendarUnitTimeZone fromDate:self];
 	NSDate* midnight = [calendar dateFromComponents:components];
-	return [calendar components:NSDayCalendarUnit fromDate:midnight toDate:[NSDate date] options:0].day;
+	return [calendar components:NSCalendarUnitDay fromDate:midnight toDate:[NSDate date] options:0].day;
 }
 
 + (NSString*) stringWithDaysAgo:(NSInteger) days {
