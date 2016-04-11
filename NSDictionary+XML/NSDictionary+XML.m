@@ -91,7 +91,7 @@
 
 @implementation NSDictionary (XML)
 
-+ (instancetype) dictionaryWithXMLData:(NSData*) data {
++ (instancetype) dictionaryObjectWithXMLData:(NSData*) data {
 	NSXMLParser* parser = [[NSXMLParser alloc] initWithData:data];
 	ASXMLElement* root = [[ASXMLElement alloc] initWithName:nil attributes:nil parser:parser];
 	if (![parser parse])

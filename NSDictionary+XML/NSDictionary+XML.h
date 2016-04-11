@@ -10,6 +10,6 @@
 
 @interface NSDictionary (XML)
 
-+ (instancetype) dictionaryWithXMLData:(NSData*) data;
++ (instancetype) dictionaryObjectWithXMLData:(NSData*) data;
 
 @end
