@@ -87,10 +87,16 @@
 		
 		[_children insertObject:node atIndex:idx];
 	}];
+	NSInteger index = 0;
+	for (ASTreeControllerNode* node in _children)
+		node.index = index++;
 }
 
 - (void) removeChildren:(nonnull NSIndexSet*) indexes {
 	[_children removeObjectsAtIndexes:indexes];
+	NSInteger index = 0;
+	for (ASTreeControllerNode* node in _children)
+		node.index = index++;
 }
 
 
@@ -194,6 +200,17 @@
 	return node.expanded;
 }
 
+- (void) reloadData {
+	self.root = nil;
+	self.numberOfRows = -1;
+	[self.tableView reloadData];
+}
+
+- (nullable id) parentItemForItem:(nonnull id) item {
+	ASTreeControllerNode* node = [self nodeWithItem:item];
+	return node.parent.item;
+}
+
 
 #pragma mark - UITableViewDataSource
 
@@ -214,6 +231,23 @@
 
 	return cell;
 }
+
+- (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath {
+	if ([self.delegate respondsToSelector:@selector(treeController:canEditChild:ofItem:)] && [self.delegate respondsToSelector:@selector(treeController:commitEditingStyle:forChild:ofItem:)]) {
+		ASTreeControllerNode* node = [self nodeWithIndexPath:indexPath];
+		return [self.delegate treeController:self canEditChild:node.index ofItem:node.parent.item];
+	}
+	else
+		return NO;
+}
+
+- (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath {
+	if ([self.delegate respondsToSelector:@selector(treeController:commitEditingStyle:forChild:ofItem:)]) {
+		ASTreeControllerNode* node = [self nodeWithIndexPath:indexPath];
+		return [self.delegate treeController:self commitEditingStyle:editingStyle forChild:node.index ofItem:node.parent.item];
+	}
+}
+
 
 #pragma mark - UITableViewDelegate
 
@@ -251,6 +285,8 @@
 				[self.delegate treeController:self didCollapseCell:[tableView cellForRowAtIndexPath:indexPath] withItem:node.item];
 		}
 	}
+	if ([self.delegate respondsToSelector:@selector(treeController:didSelectCell:withItem:)])
+		[self.delegate treeController:self didSelectCell:[tableView cellForRowAtIndexPath:indexPath] withItem:node.item];
 }
 
 - (CGFloat) tableView:(UITableView *)tableView estimatedHeightForRowAtIndexPath:(NSIndexPath *)indexPath {
@@ -269,6 +305,15 @@
 		else
 			return self.tableView.rowHeight;
 	}
+}
+
+- (UITableViewCellEditingStyle)tableView:(UITableView *)tableView editingStyleForRowAtIndexPath:(NSIndexPath *)indexPath {
+	if ([self.delegate respondsToSelector:@selector(treeController:editingStyleForChild:ofItem:)]) {
+		ASTreeControllerNode* node = [self nodeWithIndexPath:indexPath];
+		return [self.delegate treeController:self editingStyleForChild:node.index ofItem:node.parent.item];
+	}
+	else
+		return UITableViewCellEditingStyleNone;
 }
 
 #pragma mark - Private
@@ -341,6 +386,7 @@
 - (ASTreeControllerNode*) root {
 	if (!_root) {
 		_root = [ASTreeControllerNode new];
+		_root.indentationLevel = -1;
 		_root.treeController = self;
 		_root.expanded = YES;
 	}

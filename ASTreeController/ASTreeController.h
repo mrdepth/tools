@@ -24,6 +24,10 @@
 - (CGFloat) treeController:(nonnull ASTreeController *)treeController heightForRowWithItem:(nonnull id) item;
 - (void) treeController:(nonnull ASTreeController *)treeController didExpandCell:(nonnull __kindof UITableViewCell*) cell withItem:(nonnull id)item;
 - (void) treeController:(nonnull ASTreeController *)treeController didCollapseCell:(nonnull __kindof UITableViewCell*) cell withItem:(nonnull id)item;
+- (void) treeController:(nonnull ASTreeController *)treeController didSelectCell:(nonnull __kindof UITableViewCell*) cell withItem:(nonnull id)item;
+- (BOOL) treeController:(nonnull ASTreeController *)treeController canEditChild:(NSInteger)index ofItem:(nullable id)item;
+- (UITableViewCellEditingStyle) treeController:(nonnull ASTreeController *)treeController editingStyleForChild:(NSInteger)index ofItem:(nullable id)item;
+- (void) treeController:(nonnull ASTreeController *)treeController commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forChild:(NSInteger)index ofItem:(nullable id)item;
 
 @end
 
@@ -35,5 +39,6 @@
 - (void) insertChildren:(nonnull NSIndexSet*) indexes ofItem:(nullable id) item withRowAnimation:(UITableViewRowAnimation)animation;
 - (void) removeChildren:(nonnull NSIndexSet*) indexes ofItem:(nullable id) item withRowAnimation:(UITableViewRowAnimation)animation;
 - (BOOL) isItemExpanded:(nonnull id) item;
-
+- (void) reloadData;
+- (nullable id) parentItemForItem:(nonnull id) item;
 @end
