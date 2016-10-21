@@ -11,6 +11,7 @@
 @implementation LUISearchBar
 
 - (void) awakeFromNib {
+	[super awakeFromNib];
 	if (self.text.length > 0)
 		self.text = [[NSBundle mainBundle] localizedStringForKey:self.text value:@"" table:@"xib"];
 	if (self.placeholder.length > 0)

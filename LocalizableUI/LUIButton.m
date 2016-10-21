@@ -11,6 +11,7 @@
 @implementation LUIButton
 
 - (void) awakeFromNib {
+	[super awakeFromNib];
 	UIControlState states[] = {UIControlStateNormal, UIControlStateHighlighted, UIControlStateDisabled, UIControlStateSelected};
 	for (int i = 0; i < 3; i++) {
 		NSString* title = [self titleForState:states[i]];

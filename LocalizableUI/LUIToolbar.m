@@ -11,6 +11,7 @@
 @implementation LUIToolbar
 
 - (void) awakeFromNib {
+	[super awakeFromNib];
 	for (UIBarButtonItem* item in self.items) {
 		if (item.title.length > 0)
 			item.title = [[NSBundle mainBundle] localizedStringForKey:item.title value:@"" table:@"xib"];

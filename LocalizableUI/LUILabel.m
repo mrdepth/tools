@@ -11,6 +11,7 @@
 @implementation LUILabel
 
 - (void) awakeFromNib {
+	[super awakeFromNib];
 	if (self.text.length > 0)
 		self.text = [[NSBundle mainBundle] localizedStringForKey:self.text value:self.text table:@"xib"];
 }

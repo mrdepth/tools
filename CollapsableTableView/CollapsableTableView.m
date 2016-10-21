@@ -72,6 +72,7 @@
 #endif
 
 - (void) awakeFromNib {
+	[super awakeFromNib];
 	[super setDelegate:(id)self];
 	[super setDataSource:(id)self];
 }
