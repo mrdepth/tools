@@ -21,6 +21,7 @@
 @property (nonatomic, weak) ASTreeControllerNode* parent;
 @property (nonatomic, assign) NSInteger indentationLevel;
 @property (nonatomic, assign) NSInteger index;
+@property (nonatomic, assign) CGFloat estimatedHeight;
 
 - (void) insertChildren:(nonnull NSIndexSet*) indexes;
 - (void) removeChildren:(nonnull NSIndexSet*) indexes;
@@ -297,8 +298,13 @@
 - (CGFloat) tableView:(UITableView *)tableView estimatedHeightForRowAtIndexPath:(NSIndexPath *)indexPath {
 	if ([self.delegate respondsToSelector:@selector(treeController:estimatedHeightForRowWithItem:)])
 		return [self.delegate treeController:self estimatedHeightForRowWithItem:[self nodeWithIndexPath:indexPath].item];
-	else
-		return tableView.estimatedRowHeight > 0 ? tableView.estimatedRowHeight : -1;
+	else {
+		ASTreeControllerNode* node = [self nodeWithIndexPath:indexPath];
+		if (node.estimatedHeight > 0)
+			return node.estimatedHeight;
+		else
+			return tableView.estimatedRowHeight > 0 ? tableView.estimatedRowHeight : -1;
+	}
 }
 
 - (CGFloat) tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
@@ -319,6 +325,11 @@
 	}
 	else
 		return UITableViewCellEditingStyleNone;
+}
+
+- (void) tableView:(UITableView *)tableView willDisplayCell:(nonnull UITableViewCell *)cell forRowAtIndexPath:(nonnull NSIndexPath *)indexPath {
+	ASTreeControllerNode* node = [self nodeWithIndexPath:indexPath];
+	node.estimatedHeight = cell.bounds.size.height;
 }
 
 #pragma mark - Private
