@@ -43,18 +43,22 @@
 
 - (void) observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary<NSKeyValueChangeKey,id> *)change context:(void *)context {
 	[self.bindings enumerateKeysAndObjectsUsingBlock:^(NSString * _Nonnull key, ASBinding * _Nonnull obj, BOOL * _Nonnull stop) {
-		if (obj.observable == obj.observable && [keyPath isEqualToString:obj.keyPath]) {
+		if (obj.observable == object && [keyPath isEqualToString:obj.keyPath]) {
 			id value = [object valueForKeyPath:keyPath];
 			if (obj.transformer)
 				value = [obj.transformer transformedValue:value];
-			[obj.target setValue:value forKey:obj.binding];
+			[obj.target setValue:value forKeyPath:obj.binding];
 			*stop = YES;
 		}
 	}];
 }
 
 - (void)bind:(NSString *)binding toObject:(id)observable withKeyPath:(NSString *)keyPath transformer:(__kindof NSValueTransformer*) transformer {
+	NSParameterAssert(observable);
+	NSParameterAssert(binding);
+	NSParameterAssert(keyPath);
 	[self unbind:binding];
+	
 	ASBinding* bind = [ASBinding new];
 	bind.binding = binding;
 	bind.keyPath = keyPath;
@@ -63,6 +67,12 @@
 	bind.transformer = transformer;
 	self.bindings[binding] = bind;
 	[observable addObserver:self forKeyPath:keyPath options:0 context:nil];
+	
+	id value = [observable valueForKeyPath:keyPath];
+	if (transformer)
+		value = [transformer transformedValue:value];
+
+	[self.target setValue:value forKeyPath:binding];
 }
 
 - (void) unbind:(NSString*) binding {
