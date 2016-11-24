@@ -8,6 +8,19 @@
 
 #import "ASTreeController.h"
 
+@class ASTreeControllerNode;
+@interface ASTreeController()<UITableViewDataSource, UITableViewDelegate>
+@property (nonatomic, strong) ASTreeControllerNode* root;
+@property (nonatomic, assign) NSInteger numberOfRows;
+
+- (ASTreeControllerNode*) nodeWithIndexPath:(NSIndexPath*) indexPath;
+- (ASTreeControllerNode*) nodeWithItem:(id) item;
+- (NSIndexPath*) indexPathForNodeWithItem:(id) item;
+- (NSInteger) numberOfRowsWithNode:(ASTreeControllerNode*) node;
+- (void) reloadChildren:(nonnull NSIndexSet*) indexes ofNode:(nonnull ASTreeControllerNode*) node withRowAnimation:(UITableViewRowAnimation)animation;
+- (void) insertChildren:(nonnull NSIndexSet*) indexes ofNode:(nonnull ASTreeControllerNode*) node withRowAnimation:(UITableViewRowAnimation)animation;
+- (void) removeChildren:(nonnull NSIndexSet*) indexes ofNode:(nonnull ASTreeControllerNode*) node withRowAnimation:(UITableViewRowAnimation)animation;
+@end
 
 @interface ASTreeControllerNode : NSObject {
 	NSNumber* _expanded;
@@ -29,10 +42,49 @@
 
 @implementation ASTreeControllerNode
 
+- (void) dealloc {
+	if (_item) {
+		NSString* childrenKeyPath = self.treeController.childrenKeyPath;
+		if (childrenKeyPath)
+			[_item removeObserver:self forKeyPath:childrenKeyPath];
+	}
+}
+
+- (void) observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary<NSKeyValueChangeKey,id> *)change context:(void *)context {
+	NSString* childrenKeyPath = self.treeController.childrenKeyPath;
+	if (object == _item && [childrenKeyPath isEqualToString:keyPath]) {
+		NSKeyValueChange kind = [change[NSKeyValueChangeKindKey] integerValue];
+		NSIndexSet* indexes = change[NSKeyValueChangeIndexesKey];
+		switch (kind) {
+			case NSKeyValueChangeSetting:
+				[self.treeController removeChildren:[NSIndexSet indexSetWithIndexesInRange:NSMakeRange(0, self.children.count)] ofNode:self withRowAnimation:UITableViewRowAnimationFade];
+				[self.treeController insertChildren:[NSIndexSet indexSetWithIndexesInRange:NSMakeRange(0, [[self.item valueForKeyPath:childrenKeyPath] count])] ofNode:self withRowAnimation:UITableViewRowAnimationFade];
+			case NSKeyValueChangeInsertion:
+				[self.treeController insertChildren:indexes ofNode:self withRowAnimation:UITableViewRowAnimationFade];
+				break;
+			case NSKeyValueChangeRemoval:
+				[self.treeController removeChildren:indexes ofNode:self withRowAnimation:UITableViewRowAnimationFade];
+				break;
+			case NSKeyValueChangeReplacement:
+				[self.treeController reloadChildren:indexes ofNode:self withRowAnimation:UITableViewRowAnimationFade];
+				break;
+		break;
+			default:
+		break;
+		}
+	}
+}
+
 - (NSArray*) children {
 	if (!_children) {
 		NSMutableArray* array = [NSMutableArray new];
-		NSInteger n = [self.treeController.delegate treeController:self.treeController numberOfChildrenOfItem:self.item];
+		NSInteger n;
+		NSString* childrenKeyPath = self.treeController.childrenKeyPath;
+		if (childrenKeyPath)
+			n = self.item ? [[self.item valueForKeyPath:childrenKeyPath] count] : [self.treeController.content count];
+		else
+			n = [self.treeController.delegate treeController:self.treeController numberOfChildrenOfItem:self.item];
+		
 		for (NSInteger i = 0; i < n; i++) {
 			ASTreeControllerNode* node = [ASTreeControllerNode new];
 			node.treeController = self.treeController;
@@ -49,7 +101,14 @@
 
 - (id) item {
 	if (!_item && self.parent) {
-		_item = [self.treeController.delegate treeController:self.treeController child:self.index ofItem:self.parent.item];
+		NSString* childrenKeyPath = self.treeController.childrenKeyPath;
+		if (childrenKeyPath) {
+			_item = self.parent.item ? [self.parent.item valueForKeyPath:childrenKeyPath][self.index] : self.treeController.content[self.index];
+			
+			[_item addObserver:self forKeyPath:childrenKeyPath options:0 context:nil];
+		}
+		else
+			_item = [self.treeController.delegate treeController:self.treeController child:self.index ofItem:self.parent.item];
 	}
 	return _item;
 }
@@ -58,8 +117,13 @@
 	if (!_expandable) {
 		if ([self.treeController.delegate respondsToSelector:@selector(treeController:isItemExpandable:)])
 			_expandable = @([self.treeController.delegate treeController:self.treeController isItemExpandable:self.item]);
-		else
-			_expandable = @(YES);
+		else {
+			NSString* childrenKeyPath = self.treeController.childrenKeyPath;
+			if (childrenKeyPath)
+				_expandable = @(self.item ? [self.item valueForKeyPath:childrenKeyPath] != nil : YES);
+			else
+				_expandable = @(YES);
+		}
 	}
 	return [_expandable boolValue];
 }
@@ -103,16 +167,6 @@
 
 @end
 
-@interface ASTreeController()<UITableViewDataSource, UITableViewDelegate>
-@property (nonatomic, strong) ASTreeControllerNode* root;
-@property (nonatomic, assign) NSInteger numberOfRows;
-
-- (ASTreeControllerNode*) nodeWithIndexPath:(NSIndexPath*) indexPath;
-- (ASTreeControllerNode*) nodeWithItem:(id) item;
-- (NSIndexPath*) indexPathForNodeWithItem:(id) item;
-- (NSInteger) numberOfRowsWithNode:(ASTreeControllerNode*) node;
-@end
-
 
 @implementation ASTreeController
 
@@ -125,12 +179,22 @@
 
 - (void) reloadRowsWithItems:(NSArray*) items rowAnimation:(UITableViewRowAnimation)animation {
 	NSMutableArray* indexPaths = [NSMutableArray new];
-	for (id item in items)
-		[indexPaths addObject:[self indexPathForNodeWithItem:item]];
-	[self.tableView reloadRowsAtIndexPaths:indexPaths withRowAnimation:animation];
+	for (id item in items) {
+		NSIndexPath* indexPath = [self indexPathForNodeWithItem:item];
+		if (indexPath)
+			[indexPaths addObject:indexPath];
+	}
+	if (indexPaths.count > 0)
+		[self.tableView reloadRowsAtIndexPaths:indexPaths withRowAnimation:animation];
 }
 
 - (void) insertChildren:(nonnull NSIndexSet*) indexes ofItem:(nullable id) item withRowAnimation:(UITableViewRowAnimation)animation {
+	ASTreeControllerNode* node = [self nodeWithItem:item];
+	
+	NSAssert(!self.content && [self.delegate treeController:self numberOfChildrenOfItem:item] == node.children.count + indexes.count, nil);
+	[self insertChildren:indexes ofNode:node withRowAnimation:animation];
+
+	/*
 	NSIndexPath* indexPath = [self indexPathForNodeWithItem:item];
 	ASTreeControllerNode* node = [self nodeWithItem:item];
 	
@@ -159,15 +223,16 @@
 		
 		_numberOfRows = -1;
 		[self.tableView insertRowsAtIndexPaths:indexPaths withRowAnimation:animation];
-	}
+	}*/
 }
 
 - (void) removeChildren:(nonnull NSIndexSet*) indexes ofItem:(nullable id) item withRowAnimation:(UITableViewRowAnimation)animation {
-	NSIndexPath* indexPath = [self indexPathForNodeWithItem:item];
 	ASTreeControllerNode* node = [self nodeWithItem:item];
 	
-	NSAssert([self.delegate treeController:self numberOfChildrenOfItem:item] == node.children.count - indexes.count, nil);
+	NSAssert(!self.content && [self.delegate treeController:self numberOfChildrenOfItem:item] == node.children.count - indexes.count, nil);
+	[self removeChildren:indexes ofNode:node withRowAnimation:animation];
 	
+	/*NSIndexPath* indexPath = [self indexPathForNodeWithItem:item];
 	if (!item || (indexPath && node.expanded)) {
 		NSMutableArray* indexPaths = [NSMutableArray new];
 		
@@ -193,7 +258,7 @@
 		[self.tableView deleteRowsAtIndexPaths:indexPaths withRowAnimation:animation];
 	}
 	else
-		[node removeChildren:indexes];
+		[node removeChildren:indexes];*/
 }
 
 - (BOOL) isItemExpanded:(nonnull id) item {
@@ -399,6 +464,31 @@
 		return nil;
 }
 
+- (NSIndexPath*) indexPathForNode:(id) item {
+	__block NSInteger row = 0;
+	
+	__block __weak ASTreeControllerNode* (^weakEnumerate)(ASTreeControllerNode*);
+	ASTreeControllerNode* (^enumerate)(ASTreeControllerNode*) = ^(ASTreeControllerNode* node) {
+		if (node.expanded) {
+			for (ASTreeControllerNode* child in node.children) {
+				if (child == item)
+					return child;
+				row++;
+				ASTreeControllerNode* node = weakEnumerate(child);
+				if (node)
+					return node;
+			}
+		}
+		return (ASTreeControllerNode*) nil;
+	};
+	weakEnumerate = enumerate;
+	ASTreeControllerNode* node = enumerate(self.root);
+	if (node)
+		return [NSIndexPath indexPathForRow:row inSection:0];
+	else
+		return nil;
+}
+
 - (ASTreeControllerNode*) root {
 	if (!_root) {
 		_root = [ASTreeControllerNode new];
@@ -431,5 +521,72 @@
 	enumerate(node);
 	return numberOfRows;
 }
+
+- (NSArray<NSIndexPath*>*) indexPathsForChildren:(nonnull NSIndexSet*) indexes ofNode:(nonnull ASTreeControllerNode*) node {
+	NSMutableArray* indexPaths = [NSMutableArray new];
+	NSIndexPath* indexPath = [self indexPathForNode:node];
+	
+	NSInteger idx = node.item ? indexPath.row + 1 : 0;
+	NSInteger to = [indexes lastIndex];
+	for (NSInteger i = 0; i <= to; i++) {
+		ASTreeControllerNode* child = node.children[i];
+		idx++;
+		if (child.expanded) {
+			NSInteger n = [self numberOfRowsWithNode:node.children[i]];
+			if ([indexes containsIndex:i]) {
+				[indexPaths addObject:[NSIndexPath indexPathForRow:idx - 1 inSection:0]];
+				for (NSInteger j = 0; j < n; j++)
+					[indexPaths addObject:[NSIndexPath indexPathForRow:idx + j inSection:0]];
+			}
+			idx += n;
+		}
+	}
+	return indexPaths;
+}
+
+- (void) reloadChildren:(nonnull NSIndexSet*) indexes ofNode:(nonnull ASTreeControllerNode*) node withRowAnimation:(UITableViewRowAnimation)animation {
+	if (indexes.count == 0)
+		return;
+	NSMutableArray* indexPaths = [NSMutableArray new];
+	[indexes enumerateIndexesUsingBlock:^(NSUInteger idx, BOOL * _Nonnull stop) {
+		NSIndexPath* indexPath = [self indexPathForNode:node.children[idx]];
+		if (indexPath)
+			[indexPaths addObject:indexPath];
+	}];
+	if (indexPaths.count > 0)
+		[self.tableView reloadRowsAtIndexPaths:indexPaths withRowAnimation:animation];
+}
+
+- (void) insertChildren:(nonnull NSIndexSet*) indexes ofNode:(nonnull ASTreeControllerNode*) node withRowAnimation:(UITableViewRowAnimation)animation {
+	if (indexes.count == 0)
+		return;
+	NSAssert(self.content || [self.delegate treeController:self numberOfChildrenOfItem:node.item] == node.children.count + indexes.count, nil);
+	NSIndexPath* indexPath = [self indexPathForNode:node];
+	[node insertChildren:indexes];
+	
+	if (!node.item || (indexPath && node.expanded)) {
+		NSArray* indexPaths = [self indexPathsForChildren:indexes ofNode:node];
+		_numberOfRows = -1;
+		[self.tableView insertRowsAtIndexPaths:indexPaths withRowAnimation:animation];
+	}
+}
+
+- (void) removeChildren:(nonnull NSIndexSet*) indexes ofNode:(nonnull ASTreeControllerNode*) node withRowAnimation:(UITableViewRowAnimation)animation {
+	if (indexes.count == 0)
+		return;
+	NSAssert(self.content || [self.delegate treeController:self numberOfChildrenOfItem:node.item] == node.children.count - indexes.count, nil);
+	NSIndexPath* indexPath = [self indexPathForNode:node];
+
+	if (!node.item || (indexPath && node.expanded)) {
+		NSArray* indexPaths = [self indexPathsForChildren:indexes ofNode:node];
+		[node removeChildren:indexes];
+		
+		_numberOfRows = -1;
+		[self.tableView deleteRowsAtIndexPaths:indexPaths withRowAnimation:animation];
+	}
+	else
+		[node removeChildren:indexes];
+}
+
 
 @end

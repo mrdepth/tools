@@ -6,16 +6,16 @@
 //  Copyright © 2016 Shimanski Artem. All rights reserved.
 //
 
-#import <UIKit/UIKit.h>
+#import "ASObjectController.h"
 
 @class ASTreeController;
 @protocol ASTreeControllerDelegate <NSObject>
 @required
-- (nonnull id)treeController:(nonnull ASTreeController *)treeController child:(NSInteger)index ofItem:(nullable id)item;
-- (NSInteger) treeController:(nonnull ASTreeController *)treeController numberOfChildrenOfItem:(nullable id)item;
 - (nonnull NSString*) treeController:(nonnull ASTreeController *)treeController cellIdentifierForItem:(nonnull id) item;
 
 @optional
+- (nonnull id)treeController:(nonnull ASTreeController *)treeController child:(NSInteger)index ofItem:(nullable id)item;
+- (NSInteger) treeController:(nonnull ASTreeController *)treeController numberOfChildrenOfItem:(nullable id)item;
 - (void) treeController:(nonnull ASTreeController *)treeController configureCell:(nonnull __kindof UITableViewCell*) cell withItem:(nonnull id) item;
 - (BOOL) treeController:(nonnull ASTreeController *)treeController isItemExpandable:(nonnull id)item;
 - (BOOL) treeController:(nonnull ASTreeController *)treeController isItemExpanded:(nonnull id)item;
@@ -36,9 +36,10 @@
 @end
 
 
-@interface ASTreeController : NSObject<UITableViewDataSource, UITableViewDelegate>
+@interface ASTreeController : ASObjectController<UITableViewDataSource, UITableViewDelegate>
 @property (nullable, weak, nonatomic) IBOutlet id<ASTreeControllerDelegate> delegate;
 @property (nullable, weak, nonatomic) IBOutlet UITableView* tableView;
+@property (nullable, copy, nonatomic) NSString* childrenKeyPath;
 
 - (void) reloadRowsWithItems:(nonnull NSArray*) items rowAnimation:(UITableViewRowAnimation)animation;
 - (void) insertChildren:(nonnull NSIndexSet*) indexes ofItem:(nullable id) item withRowAnimation:(UITableViewRowAnimation)animation;
