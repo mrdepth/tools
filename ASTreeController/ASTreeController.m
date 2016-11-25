@@ -35,6 +35,7 @@
 @property (nonatomic, assign) NSInteger indentationLevel;
 @property (nonatomic, assign) NSInteger index;
 @property (nonatomic, assign) CGFloat estimatedHeight;
+@property (nonatomic, strong) NSString* childrenKeyPath;
 
 - (void) insertChildren:(nonnull NSIndexSet*) indexes;
 - (void) removeChildren:(nonnull NSIndexSet*) indexes;
@@ -43,10 +44,8 @@
 @implementation ASTreeControllerNode
 
 - (void) dealloc {
-	if (_item) {
-		NSString* childrenKeyPath = self.treeController.childrenKeyPath;
-		if (childrenKeyPath)
-			[_item removeObserver:self forKeyPath:childrenKeyPath];
+	if (_item && self.childrenKeyPath) {
+		[_item removeObserver:self forKeyPath:self.childrenKeyPath];
 	}
 }
 
@@ -106,6 +105,7 @@
 			_item = self.parent.item ? [self.parent.item valueForKeyPath:childrenKeyPath][self.index] : self.treeController.content[self.index];
 			
 			[_item addObserver:self forKeyPath:childrenKeyPath options:0 context:nil];
+			self.childrenKeyPath = childrenKeyPath;
 		}
 		else
 			_item = [self.treeController.delegate treeController:self.treeController child:self.index ofItem:self.parent.item];
@@ -193,37 +193,6 @@
 	
 	NSAssert(!self.content && [self.delegate treeController:self numberOfChildrenOfItem:item] == node.children.count + indexes.count, nil);
 	[self insertChildren:indexes ofNode:node withRowAnimation:animation];
-
-	/*
-	NSIndexPath* indexPath = [self indexPathForNodeWithItem:item];
-	ASTreeControllerNode* node = [self nodeWithItem:item];
-	
-	NSAssert([self.delegate treeController:self numberOfChildrenOfItem:item] == node.children.count + indexes.count, nil);
-	
-	[node insertChildren:indexes];
-
-	if (!item || (indexPath && node.expanded)) {
-		NSMutableArray* indexPaths = [NSMutableArray new];
-
-		NSInteger idx = item ? indexPath.row + 1 : 0;
-		NSInteger to = [indexes lastIndex];
-		for (NSInteger i = 0; i <= to; i++) {
-			ASTreeControllerNode* child = node.children[i];
-			idx++;
-			if (child.expanded) {
-				NSInteger n = [self numberOfRowsWithNode:node.children[i]];
-				if ([indexes containsIndex:i]) {
-					[indexPaths addObject:[NSIndexPath indexPathForRow:idx - 1 inSection:0]];
-					for (NSInteger j = 0; j < n; j++)
-						[indexPaths addObject:[NSIndexPath indexPathForRow:idx + j inSection:0]];
-				}
-				idx += n;
-			}
-		}
-		
-		_numberOfRows = -1;
-		[self.tableView insertRowsAtIndexPaths:indexPaths withRowAnimation:animation];
-	}*/
 }
 
 - (void) removeChildren:(nonnull NSIndexSet*) indexes ofItem:(nullable id) item withRowAnimation:(UITableViewRowAnimation)animation {
@@ -231,34 +200,6 @@
 	
 	NSAssert(!self.content && [self.delegate treeController:self numberOfChildrenOfItem:item] == node.children.count - indexes.count, nil);
 	[self removeChildren:indexes ofNode:node withRowAnimation:animation];
-	
-	/*NSIndexPath* indexPath = [self indexPathForNodeWithItem:item];
-	if (!item || (indexPath && node.expanded)) {
-		NSMutableArray* indexPaths = [NSMutableArray new];
-		
-		NSInteger idx = item ? indexPath.row + 1 : 0;
-		NSInteger to = [indexes lastIndex];
-		for (NSInteger i = 0; i <= to; i++) {
-			ASTreeControllerNode* child = node.children[i];
-			idx++;
-			if (child.expanded) {
-				NSInteger n = [self numberOfRowsWithNode:node.children[i]];
-				if ([indexes containsIndex:i]) {
-					[indexPaths addObject:[NSIndexPath indexPathForRow:idx - 1 inSection:0]];
-					for (NSInteger j = 0; j < n; j++)
-						[indexPaths addObject:[NSIndexPath indexPathForRow:idx + j inSection:0]];
-				}
-				idx += n;
-			}
-		}
-		
-		[node removeChildren:indexes];
-
-		_numberOfRows = -1;
-		[self.tableView deleteRowsAtIndexPaths:indexPaths withRowAnimation:animation];
-	}
-	else
-		[node removeChildren:indexes];*/
 }
 
 - (BOOL) isItemExpanded:(nonnull id) item {
